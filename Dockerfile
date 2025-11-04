@@ -1,53 +1,39 @@
-FROM golang:1.24-bullseye AS builder
+FROM golang:1.22-alpine AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install dependencies needed for building
+RUN apk add --no-cache git ca-certificates
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    pkg-config \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+# Set the working directory
 WORKDIR /app
+
+# Copy go mod files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
+# Copy source code
 COPY . .
-ENV CGO_ENABLED=1
-RUN go build -o wuzapi
 
-FROM debian:bullseye-slim
+# Build the application
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o wuzapi .
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Final stage
+FROM alpine:latest
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    netcat-openbsd \
-    postgresql-client \
-    openssl \
-    curl \
-    ffmpeg \
-    tzdata \
-    && rm -rf /var/lib/apt/lists/*
+# Install ca-certificates for HTTPS requests
+RUN apk --no-cache add ca-certificates
 
-ENV TZ="America/Sao_Paulo"
-WORKDIR /app
+WORKDIR /root/
 
-COPY --from=builder /app/wuzapi         /app/
-COPY --from=builder /app/static         /app/static/
-COPY --from=builder /app/wuzapi.service /app/wuzapi.service
+# Copy the binary from builder stage
+COPY --from=builder /app/wuzapi .
 
-RUN chmod +x /app/wuzapi && \
-    chmod -R 755 /app && \
-    chown -R root:root /app
+# Create necessary directories
+RUN mkdir -p /root/dbdata
 
-ENTRYPOINT ["/app/wuzapi", "--logtype=console", "--color=true"]
+# Expose port
+EXPOSE 8080
+
+# Command to run the application
+CMD ["./wuzapi"]
