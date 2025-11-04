@@ -45,6 +45,31 @@ func (s *server) routes() {
 
 	s.router.Handle("/health", s.GetHealth()).Methods("GET")
 
+	// Authentication routes (public)
+	s.router.Handle("/auth/register", s.Register()).Methods("POST")
+	s.router.Handle("/auth/login", s.Login()).Methods("POST")
+	s.router.Handle("/auth/logout", s.SystemLogout()).Methods("POST")
+
+	// Instance management routes (authenticated system users)
+	userRoutes := s.router.PathPrefix("/my").Subrouter()
+	userRoutes.Use(s.authSystemUser)
+	
+	// Profile routes
+	userRoutes.Handle("/profile", s.GetMyProfile()).Methods("GET")
+	userRoutes.Handle("/profile", s.UpdateMyProfile()).Methods("PUT")
+	
+	// Instance routes
+	userRoutes.Handle("/instances", s.ListMyInstances()).Methods("GET")
+	userRoutes.Handle("/instances", s.CreateMyInstance()).Methods("POST")
+	userRoutes.Handle("/instances/{id}", s.GetMyInstance()).Methods("GET")
+	userRoutes.Handle("/instances/{id}", s.UpdateMyInstance()).Methods("PUT")
+	userRoutes.Handle("/instances/{id}", s.DeleteMyInstance()).Methods("DELETE")
+	
+	// Subscription routes (authenticated system users)
+	userRoutes.Handle("/subscription", s.GetUserSubscriptionHandler()).Methods("GET")
+	userRoutes.Handle("/subscription", s.UpdateUserSubscriptionHandler()).Methods("PUT")
+	userRoutes.Handle("/plans", s.GetPlansHandler()).Methods("GET")
+
 	adminRoutes := s.router.PathPrefix("/admin").Subrouter()
 	adminRoutes.Use(s.authadmin)
 	adminRoutes.Handle("/users", s.ListUsers()).Methods("GET")
@@ -89,6 +114,13 @@ func (s *server) routes() {
 
 	s.router.Handle("/session/proxy", c.Then(s.SetProxy())).Methods("POST")
 	s.router.Handle("/session/history", c.Then(s.SetHistory())).Methods("POST")
+	
+	// Destination number configuration
+	s.router.Handle("/session/destination-number", c.Then(s.SetDestinationNumber())).Methods("POST")
+	s.router.Handle("/session/destination-number", c.Then(s.GetDestinationNumber())).Methods("GET")
+	
+	// Manual daily send for testing
+	s.router.Handle("/session/send-daily-test", c.Then(s.ManualDailySend())).Methods("POST")
 
 	s.router.Handle("/session/s3/config", c.Then(s.ConfigureS3())).Methods("POST")
 	s.router.Handle("/session/s3/config", c.Then(s.GetS3Config())).Methods("GET")

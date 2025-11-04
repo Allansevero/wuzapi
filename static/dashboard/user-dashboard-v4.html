@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Metrizap</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'sans': ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'mz-green': '#28a745',
+              'mz-green-light': '#e9f7ec',
+              'mz-red': '#dc3545',
+              'mz-orange-light': '#fff3e0',
+              'mz-orange-dark': '#fd7e14',
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <div class="flex h-screen w-full">
+        
+        <!-- ==== Barra Lateral ==== -->
+        <aside class="w-64 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col h-screen">
+            
+            <!-- Logo -->
+            <div class="h-20 flex items-center px-6">
+                <h1 class="text-3xl font-bold text-gray-800">metrizap</h1>
+            </div>
+
+            <!-- Navegação -->
+            <nav class="flex-1 px-4 py-4 space-y-6">
+                
+                <!-- Grupo Principal -->
+                <div>
+                    <h3 class="px-3 mb-2 text-xs text-gray-500 uppercase tracking-wider font-semibold">PRINCIPAL</h3>
+                    <a href="#" id="linkContas" class="sidebar-link flex items-center space-x-3 font-medium px-4 py-3 rounded-lg">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <span>Contas conectadas</span>
+                    </a>
+                </div>
+
+                <!-- Grupo Perfil -->
+                <div>
+                    <h3 class="px-3 mb-2 text-xs text-gray-500 uppercase tracking-wider font-semibold">PERFIL</h3>
+                    <a href="#" id="linkDados" class="sidebar-link flex items-center space-x-3 font-medium px-4 py-3 rounded-lg">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>Seus dados</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Rodapé da Barra Lateral -->
+            <div class="p-6 border-t border-gray-200">
+                <p class="text-sm text-gray-600 mb-2" id="remainingInstances">Carregando...</p>
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="bg-mz-green h-1.5 rounded-full" id="progressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ==== Conteúdo Principal ==== -->
+        <main class="flex-1 p-8 overflow-y-auto flex flex-col">
+            
+            <!-- Cabeçalho (Fixo para ambas as páginas) -->
+            <header class="flex justify-between items-center mb-8">
+                <h1 class="text-4xl font-semibold text-gray-800" id="userGreeting">Olá 👋</h1>
+                <img class="w-12 h-12 rounded-full" id="userAvatar" src="https://placehold.co/48x48/E2E8F0/4A5568?text=U" alt="Avatar do usuário">
+            </header>
+
+            <!-- Alerta de Plano Expirado -->
+            <div id="expiredPlanAlert" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                <div class="flex items-start">
+                    <svg class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-red-800">Seu plano gratuito expirou!</h3>
+                        <p class="mt-1 text-sm text-red-700">
+                            Para continuar usando o sistema, você precisa assinar um dos nossos planos. 
+                            <a href="#" id="upgradeLinkFromAlert" class="font-medium underline">Ver planos disponíveis</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==== Página Dashboard (Contas) ==== -->
+            <div id="paginaDashboard" class="">
+                
+                <!-- Controles do Dashboard -->
+                <section class="flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-4 flex-grow">
+                        <!-- Campo de Busca -->
+                        <div class="relative flex-grow max-w-sm">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" id="searchInput" placeholder="Pesquise por nome ou número" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all">
+                        </div>
+                        
+                        <!-- Abas -->
+                        <div class="flex space-x-2">
+                            <button id="tabAll" class="bg-white text-gray-800 font-medium px-4 py-2 rounded-lg shadow-sm border border-gray-200">Todos</button>
+                            <button id="tabConnected" class="text-gray-500 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">Conectados</button>
+                            <button id="tabDisconnected" class="text-gray-500 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">Desconectadas</button>
+                            <button id="tabPaused" class="text-gray-500 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">Em pausa</button>
+                        </div>
+                    </div>
+
+                    <!-- Botão Adicionar WhatsApp -->
+                    <button id="addInstanceBtn" class="ml-4 bg-mz-green text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm hover:bg-green-700 transition-colors">
+                        Adicionar WhatsApp
+                    </button>
+                </section>
+
+                <!-- Grid de Cards -->
+                <section id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Cards serão inseridos dinamicamente aqui -->
+                </section>
+
+                <!-- Card de Alerta na parte inferior -->
+                <div id="orangeAlert" class="bg-mz-orange-light border border-mz-orange-dark text-mz-orange-dark p-4 rounded-lg flex items-start space-x-3 text-sm mt-auto">
+                    <svg class="w-5 h-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <p class="flex-grow">Todos os dias às 18 horas você receberá no WhatsApp a análise do dia de cada número conectado.</p>
+                    <button id="closeOrangeAlertBtn" class="ml-auto -mr-1 -mt-1 p-1 rounded-md text-mz-orange-dark hover:bg-mz-orange-light/50 transition-colors">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ==== Página Seus Dados ==== -->
+            <div id="paginaDados" class="hidden">
+                <h1 class="text-4xl font-semibold text-gray-800 mb-8" id="userDataGreeting">Seus dados 👋</h1>
+
+                <div class="space-y-10 max-w-5xl">
+                    
+                    <!-- Formulário de Dados -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div>
+                            <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">Seus dados</label>
+                            <input type="text" id="nome" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500" disabled>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                            <input type="email" id="email" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500" disabled>
+                        </div>
+                        <div>
+                            <label for="senha" class="block text-sm font-medium text-gray-700 mb-1">Senha atual</label>
+                            <input type="password" id="senha" value="************" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500" disabled>
+                            <a href="#" class="text-sm text-blue-600 hover:underline mt-1 inline-block">Alterar senha</a>
+                        </div>
+                        <div>
+                            <label for="whatsapp" class="block text-sm font-medium text-gray-700 mb-1">Quero receber análises no:</label>
+                            <div class="flex gap-2">
+                                <div class="relative flex-1">
+                                    <input type="text" id="whatsapp" disabled class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-800 pr-10 transition-all" placeholder="+55 11 99999-9999">
+                                    <button id="editWhatsappBtn" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 rounded transition-colors">
+                                        <svg class="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                    </button>
+                                </div>
+                                <button id="saveWhatsappBtn" class="hidden bg-mz-green text-white font-medium px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                    Salvar
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Este número receberá as análises diárias de todas as instâncias</p>
+                        </div>
+                    </div>
+
+                    <!-- Plano Atual -->
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Plano atual</h2>
+                        <div id="plansContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Plans will be loaded dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==== Modal QR Code ==== -->
+    <div id="qrModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md relative text-center">
+            <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            
+            <p class="text-sm text-gray-600 mb-6">
+                Abra seu WhatsApp → Dispositivos conectados → Aponte a câmera
+            </p>
+            
+            <div class="w-64 h-64 mx-auto my-4" id="qrCodeContainer">
+                <img src="https://placehold.co/256x256/000000/FFFFFF?text=QR+CODE" alt="QR Code para conectar WhatsApp" class="w-full h-full object-cover rounded-lg">
+            </div>
+            
+            <div class="bg-mz-green-light border border-mz-green text-mz-green p-3 rounded-lg flex items-start space-x-2 text-sm text-left mt-6">
+                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <p>Diariamente você receberá análises desse número até desconecta-lo.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==== Modal Excluir ==== -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm relative text-center">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Tem certeza que é isso que deseja?</h3>
+            
+            <div class="flex space-x-4">
+                <button id="cancelDeleteBtn" class="flex-1 bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirmDeleteBtn" class="flex-1 bg-mz-red text-white font-medium py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
+                    Sim, excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==== Modal Adicionar Instância ==== -->
+    <div id="instanceModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm relative text-center">
+            <h3 class="text-xl font-semibold text-gray-800 mb-6">Nome da instância</h3>
+            
+            <div class="relative mb-6">
+                <input id="instanceNameInput" type="text" placeholder="Nome da instância" class="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all">
+                <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button id="cancelAddInstanceBtn" class="flex-1 bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirmAddInstanceBtn" class="flex-1 bg-mz-green text-white font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    Sim, adicionar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/dashboard/js/dashboard-v4.js"></script>
+</body>
+</html>

@@ -553,51 +553,34 @@ func (s *server) SetWebhook() http.HandlerFunc {
 // Gets QR code encoded in Base64
 func (s *server) GetQR() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		txtid := r.Context().Value("userinfo").(Values).Get("Id")
-		code := ""
+		var code string
 
-		if clientManager.GetWhatsmeowClient(txtid) == nil {
-			s.Respond(w, r, http.StatusInternalServerError, errors.New("no session"))
+		// Query the database directly for the QR code
+		err := s.db.QueryRow("SELECT qrcode FROM users WHERE id=$1", txtid).Scan(&code)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				s.Respond(w, r, http.StatusNotFound, errors.New("QR code not found"))
+			} else {
+				s.Respond(w, r, http.StatusInternalServerError, err)
+			}
 			return
-		} else {
-			if clientManager.GetWhatsmeowClient(txtid).IsConnected() == false {
-				s.Respond(w, r, http.StatusInternalServerError, errors.New("not connected"))
-				return
-			}
-			rows, err := s.db.Query("SELECT qrcode AS code FROM users WHERE id=$1 LIMIT 1", txtid)
-			if err != nil {
-				s.Respond(w, r, http.StatusInternalServerError, err)
-				return
-			}
-			defer rows.Close()
-			for rows.Next() {
-				err = rows.Scan(&code)
-				if err != nil {
-					s.Respond(w, r, http.StatusInternalServerError, err)
-					return
-				}
-			}
-			err = rows.Err()
-			if err != nil {
-				s.Respond(w, r, http.StatusInternalServerError, err)
-				return
-			}
-			if clientManager.GetWhatsmeowClient(txtid).IsLoggedIn() == true {
-				s.Respond(w, r, http.StatusInternalServerError, errors.New("already logged in"))
-				return
-			}
 		}
 
-		log.Info().Str("instance", txtid).Str("qrcode", code).Msg("Get QR successful")
-		response := map[string]interface{}{"QRCode": fmt.Sprintf("%s", code)}
+		// If the code is empty, it means it hasn't been generated yet
+		if code == "" {
+			s.Respond(w, r, http.StatusNotFound, errors.New("QR code not generated yet"))
+			return
+		}
+
+		log.Info().Str("instance", txtid).Msg("Get QR successful")
+		response := map[string]interface{}{"QRCode": code}
 		responseJson, err := json.Marshal(response)
 		if err != nil {
 			s.Respond(w, r, http.StatusInternalServerError, err)
 		} else {
 			s.Respond(w, r, http.StatusOK, string(responseJson))
 		}
-		return
 	}
 }
 
@@ -6042,3 +6025,135 @@ func (s *server) GetUserLID() http.HandlerFunc {
 		}
 	}
 }
+
+// GetPlansHandler returns all available plans
+func (s *server) GetPlansHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		plans, err := s.GetAllPlans()
+		if err != nil {
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   err.Error(),
+				"success": false,
+			})
+			return
+		}
+
+		s.respondWithJSON(w, http.StatusOK, map[string]interface{}{
+			"code":    http.StatusOK,
+			"data":    plans,
+			"success": true,
+		})
+	}
+}
+
+// GetUserSubscriptionHandler returns the user's current subscription
+func (s *server) GetUserSubscriptionHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		systemUserID, ok := r.Context().Value("system_user_id").(int)
+		if !ok {
+			s.respondWithJSON(w, http.StatusUnauthorized, map[string]interface{}{
+				"code":    http.StatusUnauthorized,
+				"error":   "unauthorized",
+				"success": false,
+			})
+			return
+		}
+
+		subscription, err := s.GetActiveSubscription(systemUserID)
+		if err != nil {
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   err.Error(),
+				"success": false,
+			})
+			return
+		}
+
+		// Se não tem assinatura, criar plano gratuito
+		if subscription == nil {
+			if err := s.CreateDefaultSubscription(systemUserID); err != nil {
+				s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+					"code":    http.StatusInternalServerError,
+					"error":   err.Error(),
+					"success": false,
+				})
+				return
+			}
+			// Buscar novamente
+			subscription, err = s.GetActiveSubscription(systemUserID)
+			if err != nil || subscription == nil {
+				s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+					"code":    http.StatusInternalServerError,
+					"error":   "failed to create subscription",
+					"success": false,
+				})
+				return
+			}
+		}
+
+		// Get instance count
+		instanceCount, err := s.GetUserInstanceCount(systemUserID)
+		if err != nil {
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   err.Error(),
+				"success": false,
+			})
+			return
+		}
+
+		// Check if expired
+		isExpired := false
+		if subscription.ExpiresAt != nil && subscription.ExpiresAt.Before(time.Now()) {
+			isExpired = true
+		}
+
+		s.respondWithJSON(w, http.StatusOK, map[string]interface{}{
+			"code":               http.StatusOK,
+			"data": map[string]interface{}{
+				"subscription":         subscription,
+				"instance_count":       instanceCount,
+				"instances_remaining":  subscription.Plan.MaxInstances - instanceCount,
+				"max_instances":        subscription.Plan.MaxInstances,
+				"plan_id":              subscription.PlanID,
+				"is_expired":           isExpired,
+			},
+			"success": true,
+		})
+	}
+}
+
+// UpdateUserSubscriptionHandler updates the user's subscription plan
+func (s *server) UpdateUserSubscriptionHandler() http.HandlerFunc {
+	type UpdateRequest struct {
+		PlanID int `json:"plan_id"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		systemUserID, ok := r.Context().Value("system_user_id").(int)
+		if !ok {
+			s.Respond(w, r, http.StatusUnauthorized, errors.New("unauthorized"))
+			return
+		}
+
+		var req UpdateRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			s.Respond(w, r, http.StatusBadRequest, errors.New("invalid request body"))
+			return
+		}
+
+		if err := s.UpdateSubscription(systemUserID, req.PlanID); err != nil {
+			s.Respond(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		response := map[string]interface{}{
+			"success": true,
+			"message": "Subscription updated successfully",
+		}
+
+		s.Respond(w, r, http.StatusOK, response)
+	}
+}
+

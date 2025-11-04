@@ -70,6 +70,36 @@ var migrations = []Migration{
 		Name:  "add_data_json",
 		UpSQL: addDataJsonSQL,
 	},
+	{
+		ID:    9,
+		Name:  "add_system_users",
+		UpSQL: addSystemUsersSQL,
+	},
+	{
+		ID:    10,
+		Name:  "add_user_id_to_instances",
+		UpSQL: addUserIDToInstancesSQL,
+	},
+	{
+		ID:    11,
+		Name:  "add_destination_number",
+		UpSQL: addDestinationNumberSQL,
+	},
+	{
+		ID:    12,
+		Name:  "add_daily_conversations",
+		UpSQL: addDailyConversationsSQL,
+	},
+	{
+		ID:    13,
+		Name:  "add_subscription_plans",
+		UpSQL: addSubscriptionPlansSQL,
+	},
+	{
+		ID:    14,
+		Name:  "add_system_user_profile_fields",
+		UpSQL: addSystemUserProfileFieldsSQL,
+	},
 }
 
 const changeIDToStringSQL = `
@@ -435,6 +465,134 @@ func applyMigration(db *sqlx.DB, migration Migration) error {
 		} else {
 			_, err = tx.Exec(migration.UpSQL)
 		}
+	} else if migration.ID == 9 {
+		if db.DriverName() == "sqlite" {
+			// Create system_users table for SQLite
+			err = createTableIfNotExistsSQLite(tx, "system_users", `
+				CREATE TABLE system_users (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					email TEXT UNIQUE NOT NULL,
+					password_hash TEXT NOT NULL,
+					created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+					updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+				)`)
+		} else {
+			_, err = tx.Exec(migration.UpSQL)
+		}
+	} else if migration.ID == 10 {
+		if db.DriverName() == "sqlite" {
+			// Add system_user_id column to users table for SQLite
+			err = addColumnIfNotExistsSQLite(tx, "users", "system_user_id", "INTEGER REFERENCES system_users(id) ON DELETE CASCADE")
+		} else {
+			_, err = tx.Exec(migration.UpSQL)
+		}
+	} else if migration.ID == 11 {
+		if db.DriverName() == "sqlite" {
+			// Add destination_number column to users table for SQLite
+			err = addColumnIfNotExistsSQLite(tx, "users", "destination_number", "TEXT DEFAULT ''")
+		} else {
+			_, err = tx.Exec(migration.UpSQL)
+		}
+	} else if migration.ID == 12 {
+		if db.DriverName() == "sqlite" {
+			// Create daily_conversations table for SQLite
+			err = createTableIfNotExistsSQLite(tx, "daily_conversations", `
+				CREATE TABLE daily_conversations (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					user_id TEXT NOT NULL,
+					date DATE NOT NULL,
+					chat_jid TEXT NOT NULL,
+					contact TEXT NOT NULL,
+					messages TEXT NOT NULL,
+					created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+					UNIQUE(user_id, date, chat_jid)
+				)`)
+			if err == nil {
+				// Create index for SQLite
+				_, err = tx.Exec(`
+					CREATE INDEX IF NOT EXISTS idx_daily_conversations_user_date 
+					ON daily_conversations (user_id, date)`)
+			}
+		} else {
+			_, err = tx.Exec(migration.UpSQL)
+		}
+	} else if migration.ID == 13 {
+		if db.DriverName() == "sqlite" {
+			// Create plans table for SQLite
+			err = createTableIfNotExistsSQLite(tx, "plans", `
+				CREATE TABLE plans (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					name TEXT NOT NULL,
+					price REAL NOT NULL,
+					max_instances INTEGER NOT NULL,
+					trial_days INTEGER DEFAULT 0,
+					is_active BOOLEAN DEFAULT 1,
+					created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+				)`)
+			if err == nil {
+				// Insert default plans
+				_, err = tx.Exec(`
+					INSERT OR IGNORE INTO plans (id, name, price, max_instances, trial_days) VALUES
+					(1, 'Gratuito', 0.00, 999999, 5),
+					(2, 'Pro', 29.00, 5, 0),
+					(3, 'Analista', 97.00, 12, 0)`)
+			}
+			if err == nil {
+				// Create user_subscriptions table
+				err = createTableIfNotExistsSQLite(tx, "user_subscriptions", `
+					CREATE TABLE user_subscriptions (
+						id INTEGER PRIMARY KEY AUTOINCREMENT,
+						system_user_id INTEGER NOT NULL REFERENCES system_users(id) ON DELETE CASCADE,
+						plan_id INTEGER NOT NULL REFERENCES plans(id),
+						started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+						expires_at DATETIME,
+						is_active BOOLEAN DEFAULT 1,
+						created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+						updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+					)`)
+			}
+			if err == nil {
+				// Create indexes
+				_, err = tx.Exec(`
+					CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user 
+					ON user_subscriptions (system_user_id)`)
+			}
+			if err == nil {
+				_, err = tx.Exec(`
+					CREATE INDEX IF NOT EXISTS idx_user_subscriptions_active 
+					ON user_subscriptions (system_user_id, is_active, expires_at)`)
+			}
+			if err == nil {
+				// Create subscription_history table
+				err = createTableIfNotExistsSQLite(tx, "subscription_history", `
+					CREATE TABLE subscription_history (
+						id INTEGER PRIMARY KEY AUTOINCREMENT,
+						system_user_id INTEGER NOT NULL REFERENCES system_users(id) ON DELETE CASCADE,
+						plan_id INTEGER NOT NULL REFERENCES plans(id),
+						started_at DATETIME NOT NULL,
+						ended_at DATETIME,
+						created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+					)`)
+			}
+			if err == nil {
+				// Create index
+				_, err = tx.Exec(`
+					CREATE INDEX IF NOT EXISTS idx_subscription_history_user 
+					ON subscription_history (system_user_id)`)
+			}
+		} else {
+			_, err = tx.Exec(migration.UpSQL)
+		}
+	} else if migration.ID == 14 {
+		if db.DriverName() == "sqlite" {
+			// Add name and whatsapp_number to system_users table for SQLite
+			err = addColumnIfNotExistsSQLite(tx, "system_users", "name", "TEXT DEFAULT ''")
+			if err == nil {
+				err = addColumnIfNotExistsSQLite(tx, "system_users", "whatsapp_number", "TEXT DEFAULT ''")
+			}
+		} else {
+			_, err = tx.Exec(migration.UpSQL)
+		}
 	} else {
 		_, err = tx.Exec(migration.UpSQL)
 	}
@@ -641,6 +799,142 @@ BEGIN
     -- Add hmac_key column as BYTEA for encrypted data
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'hmac_key') THEN
         ALTER TABLE users ADD COLUMN hmac_key BYTEA;
+    END IF;
+END $$;
+
+-- SQLite version (handled in code)
+`
+
+const addSystemUsersSQL = `
+-- PostgreSQL version - Create system_users table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'system_users') THEN
+        CREATE TABLE system_users (
+            id SERIAL PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    END IF;
+END $$;
+
+-- SQLite version (handled in code)
+`
+
+const addUserIDToInstancesSQL = `
+-- PostgreSQL version - Add system_user_id to users (instances) table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'system_user_id') THEN
+        ALTER TABLE users ADD COLUMN system_user_id INTEGER REFERENCES system_users(id) ON DELETE CASCADE;
+    END IF;
+END $$;
+
+-- SQLite version (handled in code)
+`
+
+const addDestinationNumberSQL = `
+-- PostgreSQL version - Add destination number field
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'destination_number') THEN
+        ALTER TABLE users ADD COLUMN destination_number TEXT DEFAULT '';
+    END IF;
+END $$;
+
+-- SQLite version (handled in code)
+`
+
+const addDailyConversationsSQL = `
+-- PostgreSQL version - Create table for daily conversation cache
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'daily_conversations') THEN
+        CREATE TABLE daily_conversations (
+            id SERIAL PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            date DATE NOT NULL,
+            chat_jid TEXT NOT NULL,
+            contact TEXT NOT NULL,
+            messages JSONB NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, date, chat_jid)
+        );
+        CREATE INDEX idx_daily_conversations_user_date ON daily_conversations (user_id, date);
+    END IF;
+END $$;
+
+-- SQLite version (handled in code)
+`
+
+const addSubscriptionPlansSQL = `
+-- PostgreSQL version - Create subscription plans tables
+DO $$
+BEGIN
+    -- Plans table
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'plans') THEN
+        CREATE TABLE plans (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            price DECIMAL(10, 2) NOT NULL,
+            max_instances INTEGER NOT NULL,
+            trial_days INTEGER DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        -- Insert default plans
+        INSERT INTO plans (name, price, max_instances, trial_days) VALUES
+        ('Gratuito', 0.00, 999999, 5),
+        ('Pro', 29.00, 5, 0),
+        ('Analista', 97.00, 12, 0);
+    END IF;
+    
+    -- User subscriptions table
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_subscriptions') THEN
+        CREATE TABLE user_subscriptions (
+            id SERIAL PRIMARY KEY,
+            system_user_id INTEGER NOT NULL REFERENCES system_users(id) ON DELETE CASCADE,
+            plan_id INTEGER NOT NULL REFERENCES plans(id),
+            started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX idx_user_subscriptions_user ON user_subscriptions (system_user_id);
+        CREATE INDEX idx_user_subscriptions_active ON user_subscriptions (system_user_id, is_active, expires_at);
+    END IF;
+    
+    -- Subscription history table
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'subscription_history') THEN
+        CREATE TABLE subscription_history (
+            id SERIAL PRIMARY KEY,
+            system_user_id INTEGER NOT NULL REFERENCES system_users(id) ON DELETE CASCADE,
+            plan_id INTEGER NOT NULL REFERENCES plans(id),
+            started_at TIMESTAMP NOT NULL,
+            ended_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX idx_subscription_history_user ON subscription_history (system_user_id);
+    END IF;
+END $$;
+
+-- SQLite version (handled in code)
+`
+
+const addSystemUserProfileFieldsSQL = `
+-- PostgreSQL version - Add name and whatsapp_number to system_users
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'system_users' AND column_name = 'name') THEN
+        ALTER TABLE system_users ADD COLUMN name TEXT DEFAULT '';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'system_users' AND column_name = 'whatsapp_number') THEN
+        ALTER TABLE system_users ADD COLUMN whatsapp_number TEXT DEFAULT '';
     END IF;
 END $$;
 

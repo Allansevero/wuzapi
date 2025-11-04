@@ -40,3 +40,12 @@ NEW_FEATS.md
 *.code-workspace
 **/*.code-workspace
 .vscode/workspaceStorage/
+
+# Backup files
+*.backup
+*.old
+*.bak
+*.backup-*
+wuzapi.backup
+wuzapi.old
+dbdata.backup.*/

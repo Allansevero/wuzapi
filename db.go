@@ -88,10 +88,15 @@ func initializeSQLite(config DatabaseConfig) (*sqlx.DB, error) {
 	}
 
 	dbPath := filepath.Join(config.Path, "users.db")
-	db, err := sqlx.Open("sqlite", dbPath+"?_pragma=foreign_keys(1)&_busy_timeout=3000")
+	db, err := sqlx.Open("sqlite", dbPath+"?_pragma=foreign_keys(1)&_busy_timeout=10000&_journal_mode=WAL&_synchronous=NORMAL")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open sqlite database: %w", err)
 	}
+
+	// Configure connection pool for SQLite
+	db.SetMaxOpenConns(1) // SQLite works better with single connection
+	db.SetMaxIdleConns(1)
+	db.SetConnMaxLifetime(0)
 
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping sqlite database: %w", err)

@@ -614,15 +614,8 @@ function handleRegularLogin(token,notifications=false) {
         setLocalStorageItem('currentUserJID', status.data.jid, 6);
         window.currentUserJID = status.data.jid;
       }
-      populateInstances([status.data]);
-      showRegularUser();
-      $('.logingrid').addClass('hidden');
-      $('.admingrid').addClass('hidden');
-      $('.maingrid').removeClass('hidden');
-      $('.adminlogin').hide();
-      showWidgets();
-      $('#'+status.data.instanceId).removeClass('hidden');
-      updateUser();
+      // Redirect to v4 dashboard for regular users
+      window.location.href = '/dashboard/user-dashboard-v4.html';
     } else {
       removeLocalStorageItem('token');
       showError("Invalid credentials");

@@ -6,6 +6,19 @@
   <title>WuzAPI</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.4/dist/semantic.min.css">
   <link rel="stylesheet" href="css/app.css">
+  <script>
+    // Redirect regular users to v4 dashboard
+    (function() {
+      const hasAuthToken = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const isAdmin = localStorage.getItem('isAdmin');
+      const hasAdminToken = localStorage.getItem('admintoken');
+      
+      // If user has auth token but is not admin, redirect to v4
+      if (hasAuthToken && !isAdmin && !hasAdminToken) {
+        window.location.href = '/dashboard/user-dashboard-v4.html';
+      }
+    })();
+  </script>
 </head>
 <body>
 

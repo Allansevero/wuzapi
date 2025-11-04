@@ -677,6 +677,29 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 			log.Error().Err(err).Msg(sqlStmt)
 			return
 		}
+
+		// Auto-request history sync when connected
+		if _, ok := rawEvt.(*events.Connected); ok {
+			go func() {
+				time.Sleep(5 * time.Second)
+				log.Info().Str("userID", txtid).Msg("Auto-requesting history sync after connection")
+
+				info, found := lastMessageCache.Get(txtid)
+				if !found {
+					info = &types.MessageInfo{}
+				}
+
+				historyMsg := mycli.WAClient.BuildHistorySyncRequest(info.(*types.MessageInfo), 100)
+				if historyMsg != nil {
+					_, err := mycli.WAClient.SendMessage(context.Background(), mycli.WAClient.Store.ID.ToNonAD(), historyMsg, whatsmeow.SendRequestExtra{Peer: true})
+					if err != nil {
+						log.Error().Str("userID", txtid).Err(err).Msg("Failed to auto-request history sync")
+					} else {
+						log.Info().Str("userID", txtid).Msg("History sync auto-requested successfully")
+					}
+				}
+			}()
+		}
 	case *events.PairSuccess:
 		log.Info().Str("userid", mycli.userID).Str("token", mycli.token).Str("ID", evt.ID.String()).Str("BusinessName", evt.BusinessName).Str("Platform", evt.Platform).Msg("QR Pair Success")
 		jid := evt.ID

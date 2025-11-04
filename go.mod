@@ -20,10 +20,12 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.3
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/justinas/alice v1.2.0
 	github.com/lib/pq v1.10.9
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rabbitmq/amqp091-go v1.10.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/image v0.32.0
 	golang.org/x/sync v0.17.0
@@ -67,7 +69,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	go.mau.fi/libsignal v0.2.1 // indirect
 	go.mau.fi/util v0.9.2 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/crypto v0.43.0
 	golang.org/x/net v0.46.0
 	golang.org/x/sys v0.37.0 // indirect
 	rsc.io/qr v0.2.0 // indirect
