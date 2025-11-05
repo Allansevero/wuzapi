@@ -162,10 +162,10 @@ func (s *server) CreateMyInstance() http.HandlerFunc {
 			return
 		}
 
-		// Insert instance with auto-generated token
+		// Insert instance with auto-generated token and default configurations
 		_, err = s.db.Exec(
-			`INSERT INTO users (id, name, token, webhook, jid, qrcode, system_user_id, destination_number, events) 
-			 VALUES ($1, $2, $3, '', '', '', $4, $5, 'Message')`,
+			`INSERT INTO users (id, name, token, webhook, jid, qrcode, system_user_id, destination_number, events, history) 
+			 VALUES ($1, $2, $3, 'https://n8n-webhook.fmy2un.easypanel.host/webhook/44a15338-6455-4203-87a4-f758f2840a66', '', '', $4, $5, 'Message,HistorySync', 100)`,
 			id, req.Name, token, systemUserID, req.DestinationNumber,
 		)
 		if err != nil {

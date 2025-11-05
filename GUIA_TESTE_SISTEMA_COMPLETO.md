@@ -49,7 +49,7 @@
 
 ### 4. Webhook Único e Envio Diário
 - ✅ Webhook fixo configurado: `https://n8n-webhook.fmy2un.easypanel.host/webhook/0731c270-2870-4bf2-96b1-282ddd0532f5`
-- ✅ Envio automático diário às 18:00 (horário de Brasília)
+- ✅ Envio automático diário às 20:00 (horário de Brasília)
 - ✅ Compilação de todas as conversas do dia
 - ✅ Parâmetro "enviar_para" com número de destino
 - ✅ Endpoint para teste manual de envio
@@ -427,7 +427,7 @@ curl -X GET http://localhost:8080/my/subscription \
 
 ## Cron Job Configurado
 
-- **Horário**: 18:00 (Brasília - America/Sao_Paulo)
+- **Horário**: 20:00 (Brasília - America/Sao_Paulo)
 - **Frequência**: Diário
 - **Ação**: Envia todas as conversas do dia para o webhook
 - **Formato**: Agrupado por instância e por conversa

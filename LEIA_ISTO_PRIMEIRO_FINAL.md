@@ -33,7 +33,7 @@ Todas as alterações solicitadas foram implementadas com sucesso!
 - Verificação automática de expiração
 
 ### 4. ✅ Envio Diário Automático
-- **Horário**: 18:00 (Brasília)
+- **Horário**: 20:00 (Brasília)
 - **Frequência**: Todos os dias
 - **Webhook Fixo**: `https://n8n-webhook.fmy2un.easypanel.host/webhook/0731c270-2870-4bf2-96b1-282ddd0532f5`
 - Agrupa TODAS as conversas do dia
@@ -295,7 +295,7 @@ https://n8n-webhook.fmy2un.easypanel.host/webhook/0731c270-2870-4bf2-96b1-282ddd
 ```
 
 ### Horário
-O envio acontece **TODOS OS DIAS às 18:00** no horário de Brasília (America/Sao_Paulo).
+O envio acontece **TODOS OS DIAS às 20:00** no horário de Brasília (America/Sao_Paulo).
 
 ### Mensagens
 As mensagens são enviadas **UMA VEZ POR DIA**, compiladas em um único payload JSON.

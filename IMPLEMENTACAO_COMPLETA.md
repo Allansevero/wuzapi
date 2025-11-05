@@ -94,7 +94,7 @@ Você solicitou as seguintes alterações principais:
 ### 3. Envio Diário Automático
 ✅ **Backend (daily_sender.go)**
 - Cron job configurado
-- Execução às 18:00 horário de Brasília
+- Execução às 20:00 horário de Brasília
 - Função `initDailyMessageSender()`
 - Função `sendDailyMessages()`
 - Função `sendDailyMessagesForInstance()`

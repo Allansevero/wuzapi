@@ -25,7 +25,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/robfig/cron/v3 v3.0.1
 	github.com/vincent-petithory/dataurl v1.0.0
 	golang.org/x/image v0.32.0
 	golang.org/x/sync v0.17.0

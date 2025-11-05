@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticação - Metrizap</title>
+    
+    <!-- Importação do Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Importação das fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Krona+One&display=swap" rel="stylesheet">
+    
+    <!-- Configuração do Tailwind -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'sans': ['Inter', 'sans-serif'],
+              'krona': ['"Krona One"', 'sans-serif'],
+            },
+            colors: {
+              'mz-green': '#28a745',
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <!-- Container principal que centraliza tudo -->
+    <div class="flex items-center justify-center min-h-screen py-12">
+        
+        <div class="w-full max-w-sm p-6">
+
+            <!-- ======================= -->
+            <!--      CAIXA DE LOGIN     -->
+            <!-- ======================= -->
+            <div id="loginBox">
+                <!-- Logótipo -->
+                <h1 class="font-krona text-4xl font-bold text-center text-gray-800 mb-8">
+                    metri<span class="text-mz-green">zap</span>
+                </h1>
+
+                <!-- Título -->
+                <h2 class="text-xl font-semibold text-center text-gray-800 mb-8">
+                    Converta conversas em dados para aumentar as vendas da sua loja.
+                </h2>
+
+                <!-- Formulário de Login -->
+                <form id="loginForm" class="space-y-6">
+                    
+                    <!-- Campo E-mail -->
+                    <div>
+                        <label for="login_email" class="block text-sm font-medium text-gray-700 mb-2">
+                            E-mail
+                        </label>
+                        <input 
+                            type="email" 
+                            id="login_email" 
+                            placeholder="exemplo@gmail.com" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
+                        >
+                    </div>
+                    
+                    <!-- Campo Senha -->
+                    <div>
+                        <label for="login_password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Senha
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="login_password" 
+                                placeholder="Mínimo 8 dígitos" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
+                            >
+                            <!-- Botão de Mostrar/Ocultar Senha -->
+                            <button type="button" id="login_togglePassword" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 hover:text-gray-600">
+                                <svg id="login_eyeIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg id="login_eyeOffIcon" class="w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Botão Acessar Conta -->
+                    <div>
+                        <button 
+                            type="submit" 
+                            class="w-full bg-mz-green text-white font-semibold py-3 px-5 rounded-lg shadow-sm hover:bg-green-700 transition-colors mt-2"
+                        >
+                            Acessar conta
+                        </button>
+                    </div>
+
+                </form>
+                
+                <!-- Link Criar Conta -->
+                <div class="text-center mt-6">
+                    <button type="button" id="showRegisterBtn" class="text-sm text-gray-600 hover:text-gray-800 transition-colors">
+                        Não tenho conta. Criar uma!
+                    </button>
+                </div>
+            </div>
+
+            <!-- ======================= -->
+            <!--    CAIXA DE CADASTRO    -->
+            <!-- ======================= -->
+            <div id="registerBox" class="hidden">
+                <!-- Logótipo -->
+                <h1 class="font-krona text-4xl font-bold text-center text-gray-800 mb-8">
+                    metri<span class="text-mz-green">zap</span>
+                </h1>
+
+                <!-- Título -->
+                <h2 class="text-xl font-semibold text-center text-gray-800 mb-8">
+                    Converta conversas entre vendedores e clientes em dados para aumentar as vendas da sua loja.
+                </h2>
+
+                <!-- Formulário de Cadastro -->
+                <form id="cadastroForm" class="space-y-6">
+                    
+                    <!-- Nome e Sobrenome (Lado a lado) -->
+                    <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-6 sm:space-y-0">
+                        <div class="w-full sm:w-1/2">
+                            <label for="nome" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nome
+                            </label>
+                            <input 
+                                type="text" 
+                                id="nome" 
+                                placeholder="João" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
+                            >
+                        </div>
+                        <div class="w-full sm:w-1/2">
+                            <label for="sobrenome" class="block text-sm font-medium text-gray-700 mb-2">
+                                Sobrenome
+                            </label>
+                            <input 
+                                type="text" 
+                                id="sobrenome" 
+                                placeholder="Nunes" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Campo E-mail -->
+                    <div>
+                        <label for="register_email" class="block text-sm font-medium text-gray-700 mb-2">
+                            E-mail
+                        </label>
+                        <input 
+                            type="email" 
+                            id="register_email" 
+                            placeholder="exemplo@gmail.com" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
+                        >
+                    </div>
+
+                    <!-- Campo "Enviar análises para" (Telefone) -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Enviar análises para:
+                        </label>
+                        <div class="relative">
+                            <!-- Ícone e Prefixo -->
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 space-x-2 pointer-events-none">
+                                <svg class="w-5 h-5" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="20" height="14" rx="3" fill="#009B3A"/>
+                                    <path d="M10 10.5L3 7L10 3.5L17 7L10 10.5Z" fill="#FEDF00"/>
+                                    <circle cx="10" cy="7" r="2" fill="#002776"/>
+                                </svg>
+                                <span class="text-gray-500 text-sm">+55</span>
+                            </div>
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                placeholder="51 99999-9999" 
+                                class="w-full pl-20 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Campo Senha -->
+                    <div>
+                        <label for="register_password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Senha
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="register_password" 
+                                placeholder="Mínimo 8 dígitos" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
+                            >
+                            <!-- Botão de Mostrar/Ocultar Senha -->
+                            <button type="button" id="register_togglePassword" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 hover:text-gray-600">
+                                <svg id="register_eyeIcon" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg id="register_eyeOffIcon" class="w-5 h-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Botão Criar Conta Nova -->
+                    <div>
+                        <button 
+                            type="submit" 
+                            class="w-full bg-mz-green text-white font-semibold py-3 px-5 rounded-lg shadow-sm hover:bg-green-700 transition-colors mt-2"
+                        >
+                            Criar conta nova
+                        </button>
+                    </div>
+
+                </form>
+                
+                <!-- Link para Login -->
+                <div class="text-center mt-6">
+                    <button type="button" id="showLoginBtn" class="text-sm text-gray-600 hover:text-gray-800 transition-colors">
+                        Já tenho conta. Quero entrar!
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script para Lógica de Navegação e Mostrar/Ocultar Senha -->
+    <script>
+        window.onload = () => {
+            // Elementos de Navegação
+            const loginBox = document.getElementById('loginBox');
+            const registerBox = document.getElementById('registerBox');
+            const showRegisterBtn = document.getElementById('showRegisterBtn');
+            const showLoginBtn = document.getElementById('showLoginBtn');
+
+            // Navegação Login -> Cadastro
+            showRegisterBtn.addEventListener('click', () => {
+                loginBox.classList.add('hidden');
+                registerBox.classList.remove('hidden');
+            });
+
+            // Navegação Cadastro -> Login
+            showLoginBtn.addEventListener('click', () => {
+                registerBox.classList.add('hidden');
+                loginBox.classList.remove('hidden');
+            });
+
+            // --- Lógica do Toggle de Senha (LOGIN) ---
+            const login_togglePassword = document.getElementById('login_togglePassword');
+            const login_passwordInput = document.getElementById('login_password');
+            const login_eyeIcon = document.getElementById('login_eyeIcon');
+            const login_eyeOffIcon = document.getElementById('login_eyeOffIcon');
+
+            if (login_togglePassword && login_passwordInput && login_eyeIcon && login_eyeOffIcon) {
+                login_togglePassword.addEventListener('click', () => {
+                    const type = login_passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    login_passwordInput.setAttribute('type', type);
+                    login_eyeIcon.classList.toggle('hidden');
+                    login_eyeOffIcon.classList.toggle('hidden');
+                });
+            }
+
+            // --- Lógica do Toggle de Senha (CADASTRO) ---
+            const register_togglePassword = document.getElementById('register_togglePassword');
+            const register_passwordInput = document.getElementById('register_password');
+            const register_eyeIcon = document.getElementById('register_eyeIcon');
+            const register_eyeOffIcon = document.getElementById('register_eyeOffIcon');
+
+            if (register_togglePassword && register_passwordInput && register_eyeIcon && register_eyeOffIcon) {
+                register_togglePassword.addEventListener('click', () => {
+                    const type = register_passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    register_passwordInput.setAttribute('type', type);
+                    register_eyeIcon.classList.toggle('hidden');
+                    register_eyeOffIcon.classList.toggle('hidden');
+                });
+            }
+        };
+    </script>
+
+</body>
+</html>

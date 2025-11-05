@@ -86,7 +86,7 @@ AddSubscriptionHistory(...) error
 - `main.go` - Inicialização do cron job
 
 **Implementação:**
-- Cron job configurado para 18:00 (horário de Brasília)
+- Cron job configurado para 20:00 (horário de Brasília)
 - Coleta todas as mensagens do dia por instância
 - Agrupa por conversa
 - Envia para webhook único em payload JSON

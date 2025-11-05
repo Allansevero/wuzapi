@@ -47,18 +47,21 @@ func sendToGlobalWebHook(jsonData []byte, token string, userID string) {
 	jsonDataStr := string(jsonData)
 
 	instance_name := ""
+	destination_number := ""
 	userinfo, found := userinfocache.Get(token)
 	if found {
 		instance_name = userinfo.(Values).Get("Name")
+		destination_number = userinfo.(Values).Get("DestinationNumber")
 	}
 
 	if *globalWebhook != "" {
 		log.Info().Str("url", *globalWebhook).Msg("Calling global webhook")
 		// Add extra information for the global webhook
 		globalData := map[string]string{
-			"jsonData":     jsonDataStr,
-			"userID":       userID,
-			"instanceName": instance_name,
+			"jsonData":         jsonDataStr,
+			"userID":           userID,
+			"instanceName":     instance_name,
+			"enviar_para":      destination_number,
 		}
 		callHookWithHmac(*globalWebhook, globalData, userID, globalHMACKeyEncrypted)
 	}
@@ -71,20 +74,53 @@ func sendToUserWebHook(webhookurl string, path string, jsonData []byte, userID s
 func sendToUserWebHookWithHmac(webhookurl string, path string, jsonData []byte, userID string, token string, encryptedHmacKey []byte) {
 
 	instance_name := ""
+	destination_number := ""
 	userinfo, found := userinfocache.Get(token)
 	if found {
 		instance_name = userinfo.(Values).Get("Name")
+		// Primeiro tenta obter do cache, mas se estiver vazio, busca do banco de dados
+		destination_number = userinfo.(Values).Get("DestinationNumber")
+		if destination_number == "" {
+			log.Debug().Str("token", token).Str("userID", userID).Msg("DestinationNumber is empty in cache, fetching from database")
+		}
+		log.Debug().Str("token", token).Str("userID", userID).Str("instance_name", instance_name).Str("destination_number", destination_number).Msg("UserInfo retrieved from cache for webhook")
+	} else {
+		log.Warn().Str("token", token).Str("userID", userID).Msg("UserInfo not found in cache, fetching destination_number from database")
 	}
+	
+	// Buscar o número de destino diretamente do banco de dados como fallback, mas precisamos encontrar uma instância do cliente para acessar o DB
+	if destination_number == "" {
+		// Procurar um cliente conectado para obter acesso ao banco de dados
+		if client := clientManager.GetWhatsmeowClient(userID); client != nil {
+			// Tentar obter a instância do MyClient para acessar o DB
+			if mycli := clientManager.GetMyClient(userID); mycli != nil {
+				var dbDestinationNumber string
+				err := mycli.db.Get(&dbDestinationNumber, "SELECT destination_number FROM users WHERE token = $1", token)
+				if err == nil && dbDestinationNumber != "" {
+					destination_number = dbDestinationNumber
+					log.Info().Str("token", token).Str("destination_number", destination_number).Msg("Destination number fetched from database")
+				} else {
+					if err != nil {
+						log.Error().Err(err).Str("token", token).Msg("Failed to fetch destination_number from database")
+					} else {
+						log.Debug().Str("token", token).Msg("No destination number found in database")
+					}
+				}
+			}
+		}
+	}
+	
 	data := map[string]string{
-		"jsonData":     string(jsonData),
-		"userID":       userID,
-		"instanceName": instance_name,
+		"jsonData":      string(jsonData),
+		"userID":        userID,
+		"instanceName":  instance_name,
+		"enviar_para":   destination_number,  // Inclui mesmo se vazio
 	}
 
-	log.Debug().Interface("webhookData", data).Msg("Data being sent to webhook")
+	log.Info().Interface("webhookData", data).Str("token", token).Str("destination_number", destination_number).Int("webhook_data_size", len(data)).Msg("Data being sent to webhook")
 
 	if webhookurl != "" {
-		log.Info().Str("url", webhookurl).Msg("Calling user webhook")
+		log.Info().Str("url", webhookurl).Str("userID", userID).Msg("Calling user webhook")
 
 		if path == "" {
 			go callHookWithHmac(webhookurl, data, userID, encryptedHmacKey)
@@ -96,7 +132,7 @@ func sendToUserWebHookWithHmac(webhookurl string, path string, jsonData []byte, 
 				errChan <- err
 			}()
 
-			// Optionally handle the error from the channel (if needed)
+			// Optionally handle the error from the goroutine (if needed)
 			if err := <-errChan; err != nil {
 				log.Error().Err(err).Msg("Error calling hook file")
 			}
@@ -217,6 +253,96 @@ func checkIfSubscribedToEvent(subscribedEvents []string, eventType string, userI
 		return false
 	}
 	return true
+}
+
+// Function to send stored history to webhook for all conversations
+func sendStoredHistoryToWebhook(mycli *MyClient) {
+	log.Info().Str("userID", mycli.userID).Msg("Sending stored history to webhook")
+	
+	var query string
+	if mycli.db.DriverName() == "postgres" {
+		query = `SELECT DISTINCT chat_jid FROM message_history WHERE user_id = $1 ORDER BY timestamp DESC`
+	} else {
+		query = `SELECT DISTINCT chat_jid FROM message_history WHERE user_id = ? ORDER BY timestamp DESC`
+	}
+	
+	var chatJIDs []string
+	err := mycli.db.Select(&chatJIDs, query, mycli.userID)
+	if err != nil {
+		log.Error().Err(err).Str("userID", mycli.userID).Msg("Failed to get chat JIDs for history sync")
+		return
+	}
+	
+	// For each chat, get the last 100 messages and send to webhook
+	for _, chatJID := range chatJIDs {
+		var messages []HistoryMessage
+		var historyQuery string
+		if mycli.db.DriverName() == "postgres" {
+			historyQuery = `
+				SELECT id, user_id, chat_jid, sender_jid, message_id, timestamp, message_type, text_content, media_link, COALESCE(quoted_message_id, '') as quoted_message_id, COALESCE(datajson, '') as datajson
+				FROM message_history
+				WHERE user_id = $1 AND chat_jid = $2
+				ORDER BY timestamp DESC
+				LIMIT 100`
+		} else {
+			historyQuery = `
+				SELECT id, user_id, chat_jid, sender_jid, message_id, timestamp, message_type, text_content, media_link, COALESCE(quoted_message_id, '') as quoted_message_id, COALESCE(datajson, '') as datajson
+				FROM message_history
+				WHERE user_id = ? AND chat_jid = ?
+				ORDER BY timestamp DESC
+				LIMIT 100`
+		}
+		
+		err := mycli.db.Select(&messages, historyQuery, mycli.userID, chatJID)
+		if err != nil {
+			log.Error().Err(err).Str("userID", mycli.userID).Str("chatJID", chatJID).Msg("Failed to get message history")
+			continue
+		}
+		
+		// Prepare history data to send
+		historyData := map[string]interface{}{
+			"type":         "HistorySync",
+			"chat_jid":     chatJID,
+			"message_count": len(messages),
+			"messages":     messages,
+			"timestamp":    time.Now(),
+		}
+		
+		// Add destination number to history data - fetch from database as primary source
+		var destinationNumber string
+		err = mycli.db.Get(&destinationNumber, "SELECT destination_number FROM users WHERE token = $1", mycli.token)
+		if err != nil {
+			log.Warn().Err(err).Str("token", mycli.token).Msg("Failed to fetch destination_number from database when sending history, will be empty")
+			destinationNumber = ""  // Ensure it's empty string instead of undefined
+		}
+		
+		historyData["enviar_para"] = destinationNumber
+		
+		// Send to webhook
+		jsonData, err := json.Marshal(historyData)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to marshal history data to JSON")
+			continue
+		}
+		
+		// Get HMAC key for this user
+		var encryptedHmacKey []byte
+		if userinfo, found := userinfocache.Get(mycli.token); found {
+			encryptedB64 := userinfo.(Values).Get("HmacKeyEncrypted")
+			if encryptedB64 != "" {
+				encryptedHmacKey, err = base64.StdEncoding.DecodeString(encryptedB64)
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to decode HMAC key from cache")
+				}
+			}
+		}
+		
+		webhookurl := getUserWebhookUrl(mycli.token)
+		if webhookurl != "" {
+			go sendToUserWebHookWithHmac(webhookurl, "", jsonData, mycli.userID, mycli.token, encryptedHmacKey)
+			log.Info().Str("userID", mycli.userID).Str("chatJID", chatJID).Int("messageCount", len(messages)).Str("destination_number", destinationNumber).Msg("Sent history to webhook")
+		}
+	}
 }
 
 // Connects to Whatsapp Websocket on server startup if last state was connected
@@ -698,6 +824,10 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 						log.Info().Str("userID", txtid).Msg("History sync auto-requested successfully")
 					}
 				}
+				
+				// After a delay, also send stored history to webhook
+				time.Sleep(10 * time.Second)
+				go sendStoredHistoryToWebhook(mycli)
 			}()
 		}
 	case *events.PairSuccess:

@@ -78,6 +78,9 @@ func (s *server) routes() {
 	adminRoutes.Handle("/users/{id}", s.EditUser()).Methods("PUT")
 	adminRoutes.Handle("/users/{id}", s.DeleteUser()).Methods("DELETE")
 	adminRoutes.Handle("/users/{id}/full", s.DeleteUserComplete()).Methods("DELETE")
+	
+	// Admin route for getting all instances with names and destination numbers
+	adminRoutes.Handle("/instances", s.ListInstancesForAdmin()).Methods("GET")
 
 	c := alice.New()
 	c = c.Append(s.authalice)
@@ -119,8 +122,7 @@ func (s *server) routes() {
 	s.router.Handle("/session/destination-number", c.Then(s.SetDestinationNumber())).Methods("POST")
 	s.router.Handle("/session/destination-number", c.Then(s.GetDestinationNumber())).Methods("GET")
 	
-	// Manual daily send for testing
-	s.router.Handle("/session/send-daily-test", c.Then(s.ManualDailySend())).Methods("POST")
+
 
 	s.router.Handle("/session/s3/config", c.Then(s.ConfigureS3())).Methods("POST")
 	s.router.Handle("/session/s3/config", c.Then(s.GetS3Config())).Methods("GET")

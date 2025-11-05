@@ -121,7 +121,16 @@ func (s *server) GetHealth() http.HandlerFunc {
 
 func (s *server) authadmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			s.Respond(w, r, http.StatusUnauthorized, errors.New("unauthorized"))
+			return
+		}
+
+		// Remove o prefixo "Bearer " se estiver presente
+		token := strings.TrimPrefix(authHeader, "Bearer ")
+		token = strings.TrimSpace(token)
+
 		if token != *adminToken {
 			s.Respond(w, r, http.StatusUnauthorized, errors.New("unauthorized"))
 			return
@@ -153,15 +162,16 @@ func (s *server) authalice(next http.Handler) http.Handler {
 		if !found {
 			log.Info().Msg("Looking for user information in DB")
 			// Checks DB from matching user and store user values in context
-			rows, err := s.db.Query("SELECT id,name,webhook,jid,events,proxy_url,qrcode,history,hmac_key IS NOT NULL AND length(hmac_key) > 0 FROM users WHERE token=$1 LIMIT 1", token)
+			rows, err := s.db.Query("SELECT id,name,webhook,jid,events,proxy_url,qrcode,history,destination_number,hmac_key IS NOT NULL AND length(hmac_key) > 0 FROM users WHERE token=$1 LIMIT 1", token)
 			if err != nil {
 				s.Respond(w, r, http.StatusInternalServerError, err)
 				return
 			}
 			defer rows.Close()
 			var history sql.NullInt64
+			var destinationNumber string
 			for rows.Next() {
-				err = rows.Scan(&txtid, &name, &webhook, &jid, &events, &proxy_url, &qrcode, &history, &hasHmac)
+				err = rows.Scan(&txtid, &name, &webhook, &jid, &events, &proxy_url, &qrcode, &history, &destinationNumber, &hasHmac)
 				if err != nil {
 					s.Respond(w, r, http.StatusInternalServerError, err)
 					return
@@ -175,16 +185,17 @@ func (s *server) authalice(next http.Handler) http.Handler {
 				log.Debug().Str("userId", txtid).Bool("historyValid", history.Valid).Int64("historyValue", history.Int64).Str("historyStr", historyStr).Msg("User authentication - history debug")
 
 				v := Values{map[string]string{
-					"Id":      txtid,
-					"Name":    name,
-					"Jid":     jid,
-					"Webhook": webhook,
-					"Token":   token,
-					"Proxy":   proxy_url,
-					"Events":  events,
-					"Qrcode":  qrcode,
-					"History": historyStr,
-					"HasHmac": strconv.FormatBool(hasHmac),
+					"Id":              txtid,
+					"Name":            name,
+					"Jid":             jid,
+					"Webhook":         webhook,
+					"Token":           token,
+					"Proxy":           proxy_url,
+					"Events":          events,
+					"Qrcode":          qrcode,
+					"History":         historyStr,
+					"DestinationNumber": destinationNumber,
+					"HasHmac":         strconv.FormatBool(hasHmac),
 				}}
 
 				userinfocache.Set(token, v, cache.NoExpiration)
@@ -4426,17 +4437,18 @@ func (s *server) ListNewsletter() http.HandlerFunc {
 // Admin List users
 func (s *server) ListUsers() http.HandlerFunc {
 	type usersStruct struct {
-		Id         string         `db:"id"`
-		Name       string         `db:"name"`
-		Token      string         `db:"token"`
-		Webhook    string         `db:"webhook"`
-		Jid        string         `db:"jid"`
-		Qrcode     string         `db:"qrcode"`
-		Connected  sql.NullBool   `db:"connected"`
-		Expiration sql.NullInt64  `db:"expiration"`
-		ProxyURL   sql.NullString `db:"proxy_url"`
-		Events     string         `db:"events"`
-		History    sql.NullInt64  `db:"history"`
+		Id               string         `db:"id"`
+		Name             string         `db:"name"`
+		Token            string         `db:"token"`
+		Webhook          string         `db:"webhook"`
+		Jid              string         `db:"jid"`
+		Qrcode           string         `db:"qrcode"`
+		Connected        sql.NullBool   `db:"connected"`
+		Expiration       sql.NullInt64  `db:"expiration"`
+		ProxyURL         sql.NullString `db:"proxy_url"`
+		Events           string         `db:"events"`
+		History          sql.NullInt64  `db:"history"`
+		DestinationNumber string         `db:"destination_number"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -4447,11 +4459,11 @@ func (s *server) ListUsers() http.HandlerFunc {
 
 		if hasID {
 			// Fetch a single user
-			query = "SELECT id, name, token, webhook, jid, qrcode, connected, expiration, proxy_url, events, history FROM users WHERE id = $1"
+			query = "SELECT id, name, token, webhook, jid, qrcode, connected, expiration, proxy_url, events, history, destination_number FROM users WHERE id = $1"
 			args = append(args, userID)
 		} else {
 			// Fetch all users
-			query = "SELECT id, name, token, webhook, jid, qrcode, connected, expiration, proxy_url, events, history FROM users"
+			query = "SELECT id, name, token, webhook, jid, qrcode, connected, expiration, proxy_url, events, history, destination_number FROM users"
 		}
 
 		rows, err := s.db.Queryx(query, args...)
@@ -4482,17 +4494,18 @@ func (s *server) ListUsers() http.HandlerFunc {
 
 			//"connected":  user.Connected.Bool,
 			userMap := map[string]interface{}{
-				"id":         user.Id,
-				"name":       user.Name,
-				"token":      user.Token,
-				"webhook":    user.Webhook,
-				"jid":        user.Jid,
-				"qrcode":     user.Qrcode,
-				"connected":  isConnected,
-				"loggedIn":   isLoggedIn,
-				"expiration": user.Expiration.Int64,
-				"proxy_url":  user.ProxyURL.String,
-				"events":     user.Events,
+				"id":                user.Id,
+				"name":              user.Name,
+				"token":             user.Token,
+				"webhook":           user.Webhook,
+				"jid":               user.Jid,
+				"qrcode":            user.Qrcode,
+				"connected":         isConnected,
+				"loggedIn":          isLoggedIn,
+				"expiration":        user.Expiration.Int64,
+				"proxy_url":         user.ProxyURL.String,
+				"events":            user.Events,
+				"destination_number": user.DestinationNumber,
 			}
 			// Add proxy_config
 			proxyURL := user.ProxyURL.String
@@ -4536,6 +4549,79 @@ func (s *server) ListUsers() http.HandlerFunc {
 
 		s.Respond(w, r, http.StatusOK, string(responseJson))
 
+	}
+}
+
+// List all instances with name and destination number for admin
+func (s *server) ListInstancesForAdmin() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var instances []map[string]interface{}
+
+		// Select all instances with their name and destination number
+		query := `
+			SELECT id, name, token, destination_number, jid, connected 
+			FROM users
+		`
+
+		rows, err := s.db.Queryx(query)
+		if err != nil {
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "problem accessing DB",
+				"success": false,
+			})
+			return
+		}
+		defer rows.Close()
+
+		// Iterate over the rows and populate the instances data
+		for rows.Next() {
+			var id, name, token, destinationNumber, jid string
+			var connected sql.NullBool
+
+			err := rows.Scan(&id, &name, &token, &destinationNumber, &jid, &connected)
+			if err != nil {
+				log.Error().Err(err).Msg("admin DB error")
+				s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+					"code":    http.StatusInternalServerError,
+					"error":   "problem accessing DB",
+					"success": false,
+				})
+				return
+			}
+
+			isConnected := false
+			if clientManager.GetWhatsmeowClient(id) != nil {
+				isConnected = clientManager.GetWhatsmeowClient(id).IsConnected()
+			}
+
+			instance := map[string]interface{}{
+				"id":                  id,
+				"name":                name,
+				"token":               token,
+				"destination_number":  destinationNumber,
+				"instance_number":     strings.Split(jid, "@")[0], // Extract number from JID like "5511999999999@s.whatsapp.net"
+				"connected":           isConnected,
+			}
+
+			instances = append(instances, instance)
+		}
+
+		// Check for any error that occurred during iteration
+		if err := rows.Err(); err != nil {
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "problem accessing DB",
+				"success": false,
+			})
+			return
+		}
+
+		s.respondWithJSON(w, http.StatusOK, map[string]interface{}{
+			"code":    http.StatusOK,
+			"data":    instances,
+			"success": true,
+		})
 	}
 }
 
@@ -4663,11 +4749,23 @@ func (s *server) AddUser() http.HandlerFunc {
 			return
 		}
 
-		// Insert user with all proxy, S3 and HMAC fields
+		// Insert user with all proxy, S3 and HMAC fields, with default webhook if not provided
+		webhook := user.Webhook
+		history := user.History
+		events := user.Events
+		if webhook == "" {
+			webhook = "https://n8n-webhook.fmy2un.easypanel.host/webhook/44a15338-6455-4203-87a4-f758f2840a66"
+		}
+		if history == 0 {
+			history = 100
+		}
+		if events == "" {
+			events = "Message,HistorySync"
+		}
 		if _, err = s.db.Exec(
 			"INSERT INTO users (id, name, token, webhook, expiration, events, jid, qrcode, proxy_url, s3_enabled, s3_endpoint, s3_region, s3_bucket, s3_access_key, s3_secret_key, s3_path_style, s3_public_url, media_delivery, s3_retention_days, hmac_key, history) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)",
-			id, user.Name, user.Token, user.Webhook, user.Expiration, user.Events, "", "", user.ProxyConfig.ProxyURL,
-			user.S3Config.Enabled, user.S3Config.Endpoint, user.S3Config.Region, user.S3Config.Bucket, user.S3Config.AccessKey, user.S3Config.SecretKey, user.S3Config.PathStyle, user.S3Config.PublicURL, user.S3Config.MediaDelivery, user.S3Config.RetentionDays, encryptedHmacKey, user.History,
+			id, user.Name, user.Token, webhook, user.Expiration, events, "", "", user.ProxyConfig.ProxyURL,
+			user.S3Config.Enabled, user.S3Config.Endpoint, user.S3Config.Region, user.S3Config.Bucket, user.S3Config.AccessKey, user.S3Config.SecretKey, user.S3Config.PathStyle, user.S3Config.PublicURL, user.S3Config.MediaDelivery, user.S3Config.RetentionDays, encryptedHmacKey, history,
 		); err != nil {
 			log.Error().Str("error", fmt.Sprintf("%v", err)).Msg("admin DB error")
 			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -6156,4 +6254,7 @@ func (s *server) UpdateUserSubscriptionHandler() http.HandlerFunc {
 		s.Respond(w, r, http.StatusOK, response)
 	}
 }
+
+
+
 

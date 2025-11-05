@@ -56,7 +56,7 @@ Este documento descreve todas as alterações necessárias no sistema WuzAPI par
 - ⏳ **Pendente**: Buscar histórico das últimas 100 mensagens por conversa ao conectar
 
 ### 3.2 Envio Diário Automatizado
-- ✅ **Implementado**: Cron job para executar às 18:00 horário de Brasília
+- ✅ **Implementado**: Cron job para executar às 20:00 horário de Brasília
 - ✅ **Implementado**: Agrupamento de mensagens por conversa
 - ✅ **Implementado**: Estrutura do payload com todas as conversas do dia
 - ✅ **Implementado**: Envio para webhook fixo

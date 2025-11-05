@@ -103,7 +103,7 @@ import (
 
 // Adicionar antes de router.Run():
 c := cron.New(cron.WithLocation(time.FixedZone("BRT", -3*60*60)))
-c.AddFunc("0 18 * * *", func() {
+c.AddFunc("0 20 * * *", func() {
     log.Info().Msg("Starting daily message sender...")
     server.sendDailyMessagesToWebhook()
 })

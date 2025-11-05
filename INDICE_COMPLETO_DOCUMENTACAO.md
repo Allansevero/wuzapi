@@ -102,7 +102,7 @@ go run .
 - Verificação de expiração
 
 ### ✅ Envio Diário
-- Automático às 18:00 Brasília
+- Automático às 20:00 Brasília
 - Webhook fixo configurado
 - Compilação de conversas
 - Parâmetro `enviar_para`
@@ -252,7 +252,7 @@ https://n8n-webhook.fmy2un.easypanel.host/webhook/0731c270-2870-4bf2-96b1-282ddd
 
 ## ⏰ CRON JOB
 
-- **Horário**: 18:00 (America/Sao_Paulo)
+- **Horário**: 20:00 (America/Sao_Paulo)
 - **Frequência**: Diária
 - **Ação**: Envia todas conversas do dia
 - **Log**: Registrado em wuzapi.log

@@ -125,8 +125,8 @@ import (
 func startDailySender(s *server) {
     c := cron.New(cron.WithLocation(time.FixedZone("BRT", -3*60*60)))
     
-    // Executar todos os dias às 18:00 horário de Brasília
-    c.AddFunc("0 18 * * *", func() {
+    // Executar todos os dias às 20:00 horário de Brasília
+    c.AddFunc("0 20 * * *", func() {
         log.Info().Msg("Starting daily message sender...")
         s.sendDailyMessagesToWebhook()
     })

@@ -245,6 +245,9 @@
                     <h2 class="font-semibold text-lg text-gray-800">${instance.name || 'Sem nome'}</h2>
                     <span class="${statusBg} ${statusClass} text-xs font-bold px-3 py-1 rounded-full">${statusText}</span>
                 </div>
+                <div class="text-xs text-gray-400 mb-4">
+                    ID: ${instance.token || 'N/A'}
+                </div>
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <span class="text-sm text-gray-500">Data da criação</span>

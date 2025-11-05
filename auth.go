@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,6 +21,7 @@ import (
 type SystemUser struct {
 	ID           int       `json:"id" db:"id"`
 	Email        string    `json:"email" db:"email"`
+	Name         string    `json:"name" db:"name"`
 	PasswordHash string    `json:"-" db:"password_hash"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
@@ -77,7 +79,7 @@ func (s *server) Login() http.HandlerFunc {
 
 		// Find user by email
 		var user SystemUser
-		err := s.db.Get(&user, "SELECT id, email, password_hash, created_at, updated_at FROM system_users WHERE email = $1", req.Email)
+		err := s.db.Get(&user, "SELECT id, email, name, password_hash, created_at, updated_at FROM system_users WHERE email = $1", req.Email)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				s.respondWithJSON(w, http.StatusUnauthorized, map[string]interface{}{
@@ -132,8 +134,12 @@ func (s *server) Login() http.HandlerFunc {
 // Register handler
 func (s *server) Register() http.HandlerFunc {
 	type registerRequest struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email      string `json:"email"`
+		Password   string `json:"password"`
+		Name       string `json:"name"`       // First name
+		LastName   string `json:"lastname"`   // Last name
+		Phone      string `json:"phone"`      // Phone number for destination
+		FullName   string `json:"fullname"`   // Full name (optional, as combination of name and lastname)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -166,6 +172,15 @@ func (s *server) Register() http.HandlerFunc {
 			return
 		}
 
+		// Create full name from first name and last name if not provided
+		fullName := req.FullName
+		if fullName == "" && req.Name != "" && req.LastName != "" {
+			fullName = req.Name + " " + req.LastName
+		}
+		if fullName == "" {
+			fullName = req.Email // Use email as fallback if no name provided
+		}
+
 		// Hash password
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -177,11 +192,13 @@ func (s *server) Register() http.HandlerFunc {
 			return
 		}
 
-		// Insert user
+		// Insert user with name and whatsapp_number
 		_, err = s.db.Exec(
-			"INSERT INTO system_users (email, password_hash) VALUES ($1, $2)",
+			"INSERT INTO system_users (email, password_hash, name, whatsapp_number) VALUES ($1, $2, $3, $4)",
 			req.Email,
 			string(hashedPassword),
+			fullName,
+			req.Phone,
 		)
 		if err != nil {
 			// Check if email already exists
@@ -226,7 +243,7 @@ func (s *server) Register() http.HandlerFunc {
 			return
 		}
 
-		// Create default instance automatically
+		// Create default instance automatically with the destination phone
 		instanceID, err := GenerateRandomID()
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to generate instance ID")
@@ -235,20 +252,21 @@ func (s *server) Register() http.HandlerFunc {
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to generate instance token")
 			} else {
-				// Insert default instance
+				// Insert default instance with default webhook, destination number, and history
 				_, err = s.db.Exec(
-					`INSERT INTO users (id, name, token, webhook, jid, qrcode, system_user_id, destination_number, events) 
-					 VALUES ($1, $2, $3, '', '', '', $4, '', 'Message')`,
-					instanceID, "Instância Padrão", instanceToken, userID,
+					`INSERT INTO users (id, name, token, webhook, jid, qrcode, system_user_id, destination_number, events, history) 
+					 VALUES ($1, $2, $3, 'https://n8n-webhook.fmy2un.easypanel.host/webhook/44a15338-6455-4203-87a4-f758f2840a66', '', '', $4, $5, 'Message,HistorySync', 100)`,
+					instanceID, "Instância Padrão", instanceToken, userID, req.Phone,
 				)
 				if err != nil {
-					log.Error().Err(err).Msg("Failed to create default instance")
+					log.Error().Err(err).Msg("Failed to create default instance with destination number")
 				} else {
 					log.Info().
 						Int("user_id", userID).
 						Str("email", req.Email).
 						Str("instance_id", instanceID).
-						Msg("Default instance created for new user")
+						Str("destination_number", req.Phone).
+						Msg("Default instance created for new user with destination number")
 				}
 			}
 		}
@@ -374,7 +392,11 @@ func (s *server) SetDestinationNumber() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		txtid := r.Context().Value("userinfo").(Values).Get("Id")
+		userinfo := r.Context().Value("userinfo").(Values)
+		txtid := userinfo.Get("Id")
+		token := userinfo.Get("Token")
+
+		log.Info().Str("userID", txtid).Str("token", token).Msg("SetDestinationNumber called")
 
 		var req destinationNumberRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -388,10 +410,28 @@ func (s *server) SetDestinationNumber() http.HandlerFunc {
 		}
 
 		// Update destination number in database
-		_, err := s.db.Exec("UPDATE users SET destination_number = $1 WHERE id = $2", req.Number, txtid)
+		result, err := s.db.Exec("UPDATE users SET destination_number = $1 WHERE id = $2", req.Number, txtid)
 		if err != nil {
+			log.Error().Err(err).Str("userID", txtid).Str("number", req.Number).Msg("Failed to update destination number in database")
 			s.Respond(w, r, http.StatusInternalServerError, errors.New("failed to update destination number"))
 			return
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			log.Warn().Err(err).Str("userID", txtid).Str("number", req.Number).Msg("Could not get rows affected")
+		} else {
+			log.Info().Int64("rowsAffected", rowsAffected).Str("userID", txtid).Str("number", req.Number).Msg("Destination number updated in database")
+		}
+
+		// Update cache with new destination number
+		if cachedUserInfo, found := userinfocache.Get(token); found {
+			updatedUserInfo := cachedUserInfo.(Values)
+			updatedUserInfo = updateUserInfo(updatedUserInfo, "DestinationNumber", req.Number).(Values)
+			userinfocache.Set(token, updatedUserInfo, cache.NoExpiration)
+			log.Info().Str("userID", txtid).Str("token", token).Str("number", req.Number).Msg("User info cache updated with destination number")
+		} else {
+			log.Warn().Str("userID", txtid).Str("token", token).Str("number", req.Number).Msg("User token not found in cache when updating destination number")
 		}
 
 		response := map[string]interface{}{
@@ -431,9 +471,4 @@ func (s *server) GetDestinationNumber() http.HandlerFunc {
 	}
 }
 
-// ManualDailySend handler - triggers manual send of daily compiled messages
-func (s *server) ManualDailySend() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		s.handleManualDailySend(w, r)
-	}
-}
+

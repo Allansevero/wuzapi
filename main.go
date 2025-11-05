@@ -357,8 +357,7 @@ func main() {
 
 	s.connectOnStartup()
 
-	// Initialize daily message sender cron job
-	s.initDailyMessageSender()
+
 
 	srv := &http.Server{
 		Addr:              *address + ":" + *port,

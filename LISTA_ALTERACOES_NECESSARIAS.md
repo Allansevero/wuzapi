@@ -17,7 +17,7 @@
 ## 3. Sistema de Webhook Único e Envio Diário
 - [x] **Webhook padrão global**: `https://n8n-webhook.fmy2un.easypanel.host/webhook/0731c270-2870-4bf2-96b1-282ddd0532f5`
 - [x] Webhook não deve aparecer nas configurações das instâncias
-- [x] Envio automático diário às 18:00 (horário de Brasília)
+- [x] Envio automático diário às 20:00 (horário de Brasília)
 - [x] Compilar todas as conversas do dia de cada instância
 - [x] Enviar em lote único ao invés de mensagem por mensagem
 - [x] Teste manual de envio implementado

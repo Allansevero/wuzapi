@@ -26,7 +26,7 @@ O sistema WuzAPI foi completamente reformulado para suportar múltiplos usuário
 - Configuração fácil de número de destino
 
 ### 3. **Envio Diário Automático**
-- Cron job executando às 18:00 (horário de Brasília)
+- Cron job executando às 20:00 (horário de Brasília)
 - Agrupa todas as conversas do dia
 - Envia para webhook fixo (não configurável pelo usuário)
 - Inclui número de destino no payload
@@ -148,7 +148,7 @@ message_history (armazenamento)
 4. Número aparece no card
 
 ### Envio Diário
-1. Às 18:00 Brasília, cron inicia
+1. Às 20:00 Brasília, cron inicia
 2. Sistema busca mensagens do dia
 3. Agrupa por conversa
 4. Envia payload para webhook fixo:
@@ -320,7 +320,7 @@ http://localhost:8080/dashboard/user-dashboard-v2.html
 - Inserir: +5511999999999
 
 ### 7. Aguardar Envio Diário
-- Automático às 18:00
+- Automático às 20:00
 - Ou testar manualmente via API
 
 ---
@@ -332,7 +332,7 @@ http://localhost:8080/dashboard/user-dashboard-v2.html
    const FIXED_WEBHOOK_URL = "https://n8n-webhook.fmy2un.easypanel.host/webhook/0731c270-2870-4bf2-96b1-282ddd0532f5"
    ```
 
-2. **Horário de Envio:** Fixo às 18:00 horário de Brasília (configurável em `daily_sender.go`)
+2. **Horário de Envio:** Fixo às 20:00 horário de Brasília (configurável em `daily_sender.go`)
 
 3. **Histórico:** Sistema busca automaticamente últimas 100 mensagens ao conectar
 
