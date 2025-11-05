@@ -44,6 +44,7 @@ func (s *server) routes() {
 	}
 
 	s.router.Handle("/health", s.GetHealth()).Methods("GET")
+	s.router.Handle("/healthz", s.healthCheckHandler()).Methods("GET")
 
 	// Authentication routes (public)
 	s.router.Handle("/auth/register", s.Register()).Methods("POST")

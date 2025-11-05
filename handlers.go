@@ -41,6 +41,27 @@ func (v Values) Get(key string) string {
 	return v.m[key]
 }
 
+// healthCheckHandler returns a simple health check response.
+// It is used to confirm that the server is running and responsive.
+func (s *server) healthCheckHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Define a simple response structure
+		response := map[string]string{"status": "ok"}
+
+		// Set the content type to application/json
+		w.Header().Set("Content-Type", "application/json")
+
+		// Set the status code to 200 OK
+		w.WriteHeader(http.StatusOK)
+
+		// Encode and send the response
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			// If encoding fails, log the error but do not send another response
+			log.Error().Err(err).Msg("Failed to write health check response")
+		}
+	}
+}
+
 func (s *server) GetHealth() http.HandlerFunc {
 	type HealthResponse struct {
 		Status            string                 `json:"status"`
