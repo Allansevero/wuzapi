@@ -444,7 +444,19 @@ func encryptHMACKey(plainText string) ([]byte, error) {
 		return nil, fmt.Errorf("encryption key not configured")
 	}
 
-	block, err := aes.NewCipher([]byte(*globalEncryptionKey))
+	// Ensure key is exactly 32 bytes for AES-256
+	key := []byte(*globalEncryptionKey)
+	if len(key) < 32 {
+		// Pad with zeros if too short
+		paddedKey := make([]byte, 32)
+		copy(paddedKey, key)
+		key = paddedKey
+	} else if len(key) > 32 {
+		// Truncate if too long
+		key = key[:32]
+	}
+
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cipher: %w", err)
 	}
@@ -469,7 +481,19 @@ func decryptHMACKey(encryptedData []byte) (string, error) {
 		return "", fmt.Errorf("encryption key not configured")
 	}
 
-	block, err := aes.NewCipher([]byte(*globalEncryptionKey))
+	// Ensure key is exactly 32 bytes for AES-256
+	key := []byte(*globalEncryptionKey)
+	if len(key) < 32 {
+		// Pad with zeros if too short
+		paddedKey := make([]byte, 32)
+		copy(paddedKey, key)
+		key = paddedKey
+	} else if len(key) > 32 {
+		// Truncate if too long
+		key = key[:32]
+	}
+
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", fmt.Errorf("failed to create cipher: %w", err)
 	}
