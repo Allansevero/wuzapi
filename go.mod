@@ -2,33 +2,28 @@ module wuzapi
 
 go 1.24.0
 
-toolchain go1.24.7
-
 require (
+	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/aws/aws-sdk-go-v2 v1.36.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.79.4
 	github.com/go-resty/resty/v2 v2.16.5
-	github.com/gorilla/mux v1.8.1
-	github.com/mdp/qrterminal/v3 v3.2.1
-	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/rs/zerolog v1.34.0
-	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	go.mau.fi/whatsmeow v0.0.0-20251028165006-ad7a618ba42f
-	google.golang.org/protobuf v1.36.10
-)
-
-require (
-	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/gorilla/mux v1.8.1
 	github.com/justinas/alice v1.2.0
 	github.com/lib/pq v1.10.9
+	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rabbitmq/amqp091-go v1.10.0
+	github.com/rs/zerolog v1.34.0
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/vincent-petithory/dataurl v1.0.0
+	go.mau.fi/whatsmeow v0.0.0-20251028165006-ad7a618ba42f
 	golang.org/x/image v0.32.0
 	golang.org/x/sync v0.17.0
-	modernc.org/sqlite v1.37.1
+	google.golang.org/protobuf v1.36.10
+	modernc.org/sqlite v1.40.0
 )
 
 require (
@@ -54,7 +49,7 @@ require (
 	golang.org/x/exp v0.0.0-20251009144603-d2f985daa21b // indirect
 	golang.org/x/term v0.36.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
-	modernc.org/libc v1.65.8 // indirect
+	modernc.org/libc v1.66.10 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )

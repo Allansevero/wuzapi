@@ -15,7 +15,7 @@ services:
       - WUZAPI_GLOBAL_HMAC_KEY=${WUZAPI_GLOBAL_HMAC_KEY}
       - WUZAPI_GLOBAL_WEBHOOK=${WUZAPI_GLOBAL_WEBHOOK}
       - WEBHOOK_FORMAT=${WEBHOOK_FORMAT:-json}
-      - SESSION_DEVICE_NAME=${SESSION_DEVICE_NAME:-WuzAPI}
+      - SESSION_DEVICE_NAME=${SESSION_DEVICE_NAME:-Metrizap}
       - TZ=${TZ:-America/Sao_Paulo}
       
       # Database Configuration (Leave empty to use SQLite, set to use PostgreSQL)

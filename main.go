@@ -169,7 +169,7 @@ func init() {
 	}
 
 	if *versionFlag {
-		fmt.Printf("WuzAPI version %s\n", version)
+		fmt.Printf("Metrizap version %s\n", version)
 		os.Exit(0)
 	}
 	tz := os.Getenv("TZ")
