@@ -186,5 +186,12 @@ func (s *server) routes() {
 
 	s.router.Handle("/newsletter/list", c.Then(s.ListNewsletter())).Methods("GET")
 
+	// Rotas específicas para arquivos estáticos antes do PathPrefix("/")
+	s.router.Handle("/user-login.html", http.FileServer(http.Dir(exPath + "/static/")))
+	s.router.PathPrefix("/login/").Handler(http.StripPrefix("/login/", http.FileServer(http.Dir(exPath + "/static/login/"))))
+	s.router.PathPrefix("/dashboard/").Handler(http.StripPrefix("/dashboard/", http.FileServer(http.Dir(exPath + "/static/dashboard/"))))
+	s.router.PathPrefix("/api/").Handler(http.StripPrefix("/api/", http.FileServer(http.Dir(exPath + "/static/api/"))))
+
+	// Rota genérica para outros arquivos estáticos
 	s.router.PathPrefix("/").Handler(http.FileServer(http.Dir(exPath + "/static/")))
 }
