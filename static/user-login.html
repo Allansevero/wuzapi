@@ -316,9 +316,20 @@
                     
                     if (response.ok) {
                         // Armazenar token e redirecionar para o dashboard v4
-                        localStorage.setItem('auth_token', data.data.token);
+                        const token = data.data.token;
+                        localStorage.setItem('auth_token', token);
+                        sessionStorage.setItem('auth_token', token);  // Fallback
+                        
                         alert('Login realizado com sucesso!');
-                        window.location.href = '/dashboard/user-dashboard-v4.html';
+                        
+                        // Redirecionar para o dashboard com delay para garantir persistência do token
+                        setTimeout(() => {
+                            // Garantir limpeza do cache antes de redirecionar
+                            if (window.cache) {
+                                window.cache.clear();
+                            }
+                            window.location.href = '/dashboard/user-dashboard-v4.html';
+                        }, 500);
                     } else {
                         alert('Erro no login: ' + data.error);
                     }
@@ -357,10 +368,16 @@
                     const data = await response.json();
                     
                     if (response.ok) {
-                        alert('Conta criada com sucesso!');
+                        alert('Conta criada com sucesso! Agora faça login com suas credenciais.');
                         // Alternar de volta para login
                         document.getElementById('registerBox').classList.add('hidden');
                         document.getElementById('loginBox').classList.remove('hidden');
+                        
+                        // Preencher automaticamente o e-mail no formulário de login
+                        document.getElementById('login_email').value = email;
+                    } else {
+                        alert('Erro no cadastro: ' + (data.error || data.message));
+                    }
                     } else {
                         alert('Erro no cadastro: ' + data.error);
                     }

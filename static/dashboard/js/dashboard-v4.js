@@ -91,6 +91,9 @@
         getUser: () => API.request('/my/profile'),
         updateUser: (data) => API.request('/my/profile', { method: 'PUT', body: JSON.stringify(data) }),
         
+        // Force profile refresh endpoint
+        refreshProfile: () => API.request('/my/profile'),
+        
         // Instance endpoints
         getInstances: () => API.request('/my/instances'),
         createInstance: (name) => API.request('/my/instances', { 

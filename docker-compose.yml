@@ -32,10 +32,12 @@ services:
       - RABBITMQ_URL=${RABBITMQ_URL:-}
       - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-whatsapp_events}
     volumes:
-      - ./dbdata:/root/dbdata
-      - ./files:/root/files
+      - ./dbdata:/root/dbdata:rw
+      - ./files:/root/files:rw
     networks:
       - wuzapi-network
+    # Ensure proper permissions for volume mounts
+    user: "${DOCKER_USER:-root}"
 
 networks:
   wuzapi-network:
