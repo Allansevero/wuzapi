@@ -21,7 +21,7 @@
         async request(url, options = {}) {
             const token = this.getToken();
             if (!token) {
-                window.location.href = '/user-login.html';
+                window.location.href = '/login/';
                 return;
             }
 
@@ -37,7 +37,8 @@
                 if (response.status === 401) {
                     localStorage.removeItem('token');
                     localStorage.removeItem('auth_token');
-                    window.location.href = '/user-login.html';
+                    localStorage.removeItem('authToken');
+                    window.location.href = '/login/';
                     return;
                 }
 
@@ -741,9 +742,35 @@
         console.log('Dashboard V4 initialized with token:', token ? 'Token exists' : 'No token');
         
         if (!token) {
-            window.location.href = '/user-login.html';
+            window.location.href = '/login/';
             return;
         }
+
+        // Setup avatar dropdown
+        const avatarButton = document.getElementById('avatarButton');
+        const avatarDropdown = document.getElementById('avatarDropdown');
+        const logoutButton = document.getElementById('logoutButton');
+
+        // Toggle dropdown
+        avatarButton?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            avatarDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!avatarButton?.contains(e.target) && !avatarDropdown?.contains(e.target)) {
+                avatarDropdown?.classList.add('hidden');
+            }
+        });
+
+        // Logout handler
+        logoutButton?.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('authToken');
+            window.location.href = '/login/';
+        });
 
         // Setup event listeners
         Navigation.init();

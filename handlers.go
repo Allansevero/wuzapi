@@ -6351,6 +6351,232 @@ func (s *server) UpdateUserSubscriptionHandler() http.HandlerFunc {
 	}
 }
 
+// PushHistoryToWebhook pushes chat history to an external webhook (n8n)
+func (s *server) PushHistoryToWebhook() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		txtid := r.Context().Value("userinfo").(Values).Get("Id")
+		historyStr := r.Context().Value("userinfo").(Values).Get("History")
+		historyLimit, _ := strconv.Atoi(historyStr)
+
+		if historyLimit == 0 {
+			s.Respond(w, r, http.StatusNotImplemented, errors.New("message history is disabled for this user"))
+			return
+		}
+
+		// Get destination_number from database
+		var destinationNumber string
+		var destQuery string
+		if s.db.DriverName() == "postgres" {
+			destQuery = "SELECT COALESCE(destination_number, '') FROM users WHERE id = $1"
+		} else {
+			destQuery = "SELECT COALESCE(destination_number, '') FROM users WHERE id = ?"
+		}
+		err := s.db.QueryRow(destQuery, txtid).Scan(&destinationNumber)
+		if err != nil {
+			log.Warn().Err(err).Str("user_id", txtid).Msg("Failed to get destination_number, continuing without it")
+			destinationNumber = ""
+		}
+		log.Info().Str("user_id", txtid).Str("destination_number", destinationNumber).Msg("Retrieved destination_number")
+
+		// Get parameters
+		chatJID := r.URL.Query().Get("chat_jid")
+		webhookURL := r.URL.Query().Get("webhook_url")
+		dateFilter := r.URL.Query().Get("date")
+		dateFrom := r.URL.Query().Get("date_from")
+		dateTo := r.URL.Query().Get("date_to")
+		limitStr := r.URL.Query().Get("limit")
+
+		// Validate required parameters
+		if webhookURL == "" {
+			s.Respond(w, r, http.StatusBadRequest, errors.New("webhook_url is required"))
+			return
+		}
+
+		// Set default limit
+		limit := 50
+		if limitStr != "" {
+			var err error
+			limit, err = strconv.Atoi(limitStr)
+			if err != nil {
+				s.Respond(w, r, http.StatusBadRequest, errors.New("invalid limit"))
+				return
+			}
+		}
+
+		// Parse date filters
+		var dateFromTime, dateToTime time.Time
+		var hasDateFilter bool
+
+		if dateFilter != "" {
+			if dateFilter == "today" {
+				now := time.Now()
+				dateFromTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+				dateToTime = time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 999999999, now.Location())
+			} else {
+				parsedDate, err := time.Parse("2006-01-02", dateFilter)
+				if err != nil {
+					s.Respond(w, r, http.StatusBadRequest, errors.New("invalid date format. Use YYYY-MM-DD or 'today'"))
+					return
+				}
+				dateFromTime = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, parsedDate.Location())
+				dateToTime = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 999999999, parsedDate.Location())
+			}
+			hasDateFilter = true
+		} else if dateFrom != "" || dateTo != "" {
+			if dateFrom != "" {
+				parsedFrom, err := time.Parse("2006-01-02", dateFrom)
+				if err != nil {
+					s.Respond(w, r, http.StatusBadRequest, errors.New("invalid date_from format. Use YYYY-MM-DD"))
+					return
+				}
+				dateFromTime = time.Date(parsedFrom.Year(), parsedFrom.Month(), parsedFrom.Day(), 0, 0, 0, 0, parsedFrom.Location())
+			}
+			if dateTo != "" {
+				parsedTo, err := time.Parse("2006-01-02", dateTo)
+				if err != nil {
+					s.Respond(w, r, http.StatusBadRequest, errors.New("invalid date_to format. Use YYYY-MM-DD"))
+					return
+				}
+				dateToTime = time.Date(parsedTo.Year(), parsedTo.Month(), parsedTo.Day(), 23, 59, 59, 999999999, parsedTo.Location())
+			}
+			hasDateFilter = dateFrom != "" || dateTo != ""
+		}
+
+		// Build query
+		var query string
+		var args []interface{}
+
+		if s.db.DriverName() == "postgres" {
+			query = `
+				SELECT id, user_id, chat_jid, sender_jid, message_id, timestamp, message_type, text_content, media_link, COALESCE(quoted_message_id, '') as quoted_message_id, COALESCE(datajson, '') as datajson
+				FROM message_history
+				WHERE user_id = $1`
+			args = []interface{}{txtid}
+
+			// Add chat_jid filter only if provided
+			if chatJID != "" {
+				args = append(args, chatJID)
+				query += fmt.Sprintf(" AND chat_jid = $%d", len(args))
+			}
+
+			if hasDateFilter {
+				if !dateFromTime.IsZero() {
+					args = append(args, dateFromTime)
+					query += fmt.Sprintf(" AND timestamp >= $%d", len(args))
+				}
+				if !dateToTime.IsZero() {
+					args = append(args, dateToTime)
+					query += fmt.Sprintf(" AND timestamp <= $%d", len(args))
+				}
+			}
+
+			query += " ORDER BY timestamp DESC"
+			args = append(args, limit)
+			query += fmt.Sprintf(" LIMIT $%d", len(args))
+		} else {
+			query = `
+				SELECT id, user_id, chat_jid, sender_jid, message_id, timestamp, message_type, text_content, media_link, COALESCE(quoted_message_id, '') as quoted_message_id, COALESCE(datajson, '') as datajson
+				FROM message_history
+				WHERE user_id = ?`
+			args = []interface{}{txtid}
+
+			// Add chat_jid filter only if provided
+			if chatJID != "" {
+				args = append(args, chatJID)
+				query += " AND chat_jid = ?"
+			}
+
+			if hasDateFilter {
+				if !dateFromTime.IsZero() {
+					args = append(args, dateFromTime)
+					query += " AND timestamp >= ?"
+				}
+				if !dateToTime.IsZero() {
+					args = append(args, dateToTime)
+					query += " AND timestamp <= ?"
+				}
+			}
+
+			query += " ORDER BY timestamp DESC"
+			args = append(args, limit)
+			query += " LIMIT ?"
+		}
+
+		// Get messages from database
+		var messages []HistoryMessage
+		err = s.db.Select(&messages, query, args...)
+		if err != nil {
+			s.Respond(w, r, http.StatusInternalServerError, fmt.Errorf("failed to get message history: %w", err))
+			return
+		}
+
+		// Prepare payload for webhook
+		payload := map[string]interface{}{
+			"user_id":            txtid,
+			"destination_number": destinationNumber,
+			"message_count":      len(messages),
+			"messages":           messages,
+			"timestamp":          time.Now().Format(time.RFC3339),
+		}
+
+		// Add chat_jid to payload (or "all" if not specified)
+		if chatJID != "" {
+			payload["chat_jid"] = chatJID
+		} else {
+			payload["chat_jid"] = "all"
+			payload["all_chats"] = true
+		}
+
+		if hasDateFilter {
+			if !dateFromTime.IsZero() {
+				payload["date_from"] = dateFromTime.Format("2006-01-02")
+			}
+			if !dateToTime.IsZero() {
+				payload["date_to"] = dateToTime.Format("2006-01-02")
+			}
+		}
+
+		// Send to webhook
+		payloadBytes, err := json.Marshal(payload)
+		if err != nil {
+			s.Respond(w, r, http.StatusInternalServerError, fmt.Errorf("failed to marshal payload: %w", err))
+			return
+		}
+
+		// Make HTTP POST to webhook
+		resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
+		if err != nil {
+			s.Respond(w, r, http.StatusInternalServerError, fmt.Errorf("failed to send to webhook: %w", err))
+			return
+		}
+		defer resp.Body.Close()
+
+		// Check webhook response
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			s.Respond(w, r, http.StatusBadGateway, fmt.Errorf("webhook returned status %d", resp.StatusCode))
+			return
+		}
+
+		log.Info().
+			Str("user_id", txtid).
+			Str("chat_jid", chatJID).
+			Str("webhook_url", webhookURL).
+			Int("message_count", len(messages)).
+			Msg("Successfully pushed history to webhook")
+
+		// Return success response
+		responseData := map[string]interface{}{
+			"success":        true,
+			"message_count":  len(messages),
+			"webhook_url":    webhookURL,
+			"webhook_status": resp.StatusCode,
+		}
+
+		responseJSON, _ := json.Marshal(responseData)
+		s.Respond(w, r, http.StatusOK, string(responseJSON))
+	}
+}
+
 
 
 

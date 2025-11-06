@@ -79,7 +79,23 @@
             <!-- Cabeçalho (Fixo para ambas as páginas) -->
             <header class="flex justify-between items-center mb-8">
                 <h1 class="text-4xl font-semibold text-gray-800" id="userGreeting">Olá 👋</h1>
-                <img class="w-12 h-12 rounded-full" id="userAvatar" src="https://placehold.co/48x48/E2E8F0/4A5568?text=U" alt="Avatar do usuário">
+                
+                <!-- Avatar com Dropdown -->
+                <div class="relative">
+                    <button id="avatarButton" class="w-12 h-12 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <img class="w-12 h-12 rounded-full cursor-pointer" id="userAvatar" src="https://placehold.co/48x48/E2E8F0/4A5568?text=U" alt="Avatar do usuário">
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="avatarDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
+                        <button id="logoutButton" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Sair
+                        </button>
+                    </div>
+                </div>
             </header>
 
             <!-- Alerta de Plano Expirado -->
