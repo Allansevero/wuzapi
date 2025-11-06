@@ -653,9 +653,9 @@ func (s *server) startClient(userID string, textjid string, token string, subscr
 					clientManager.DeleteHTTPClient(userID)
 					killchannel[userID] <- true
 				} else if evt.Event == "success" {
-					log.Info().Msg("QR pairing ok!")
-					// Clear QR code after pairing
-					sqlStmt := `UPDATE users SET qrcode='', connected=1 WHERE id=$1`
+					log.Info().Msg("QR pairing ok! Waiting for WhatsApp to establish connection...")
+					// Clear QR code after pairing - DO NOT mark as connected yet
+					sqlStmt := `UPDATE users SET qrcode='' WHERE id=$1`
 					_, err := s.db.Exec(sqlStmt, userID)
 					if err != nil {
 						log.Error().Err(err).Msg(sqlStmt)
@@ -665,6 +665,9 @@ func (s *server) startClient(userID string, textjid string, token string, subscr
 							userinfocache.Set(token, v, cache.NoExpiration)
 						}
 					}
+					
+					// Wait a bit for WhatsApp to process the pairing
+					time.Sleep(3 * time.Second)
 				} else {
 					log.Info().Str("event", evt.Event).Msg("Login event")
 				}
@@ -783,52 +786,61 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 				log.Info().Msg("Marked self as available")
 			}
 		}
-	case *events.Connected, *events.PushNameSetting:
+	case *events.Connected:
+		log.Info().Str("userID", mycli.userID).Msg("WhatsApp Connected event received")
 		postmap["type"] = "Connected"
 		dowebhook = 1
-		if len(mycli.WAClient.Store.PushName) == 0 {
-			break
-		}
-		// Send presence available when connecting and when the pushname is changed.
-		// This makes sure that outgoing messages always have the right pushname.
+		
+		// Send presence available when connecting
 		err := mycli.WAClient.SendPresence(context.Background(), types.PresenceAvailable)
 		if err != nil {
 			log.Warn().Err(err).Msg("Failed to send available presence")
 		} else {
 			log.Info().Msg("Marked self as available")
 		}
+		
+		// Mark as connected ONLY on actual Connected event
 		sqlStmt := `UPDATE users SET connected=1 WHERE id=$1`
 		_, err = mycli.db.Exec(sqlStmt, mycli.userID)
 		if err != nil {
 			log.Error().Err(err).Msg(sqlStmt)
 			return
 		}
+		log.Info().Str("userID", mycli.userID).Msg("Marked as connected in database")
 
-		// Auto-request history sync when connected
-		if _, ok := rawEvt.(*events.Connected); ok {
-			go func() {
-				time.Sleep(5 * time.Second)
-				log.Info().Str("userID", txtid).Msg("Auto-requesting history sync after connection")
+		// Auto-request history sync when connected - with delay to avoid conflicts
+		go func() {
+			time.Sleep(10 * time.Second) // Increased delay to let WhatsApp stabilize
+			log.Info().Str("userID", txtid).Msg("Auto-requesting history sync after connection")
 
-				info, found := lastMessageCache.Get(txtid)
-				if !found {
-					info = &types.MessageInfo{}
+			info, found := lastMessageCache.Get(txtid)
+			if !found {
+				info = &types.MessageInfo{}
+			}
+
+			historyMsg := mycli.WAClient.BuildHistorySyncRequest(info.(*types.MessageInfo), 100)
+			if historyMsg != nil {
+				_, err := mycli.WAClient.SendMessage(context.Background(), mycli.WAClient.Store.ID.ToNonAD(), historyMsg, whatsmeow.SendRequestExtra{Peer: true})
+				if err != nil {
+					log.Error().Str("userID", txtid).Err(err).Msg("Failed to auto-request history sync")
+				} else {
+					log.Info().Str("userID", txtid).Msg("History sync auto-requested successfully")
 				}
-
-				historyMsg := mycli.WAClient.BuildHistorySyncRequest(info.(*types.MessageInfo), 100)
-				if historyMsg != nil {
-					_, err := mycli.WAClient.SendMessage(context.Background(), mycli.WAClient.Store.ID.ToNonAD(), historyMsg, whatsmeow.SendRequestExtra{Peer: true})
-					if err != nil {
-						log.Error().Str("userID", txtid).Err(err).Msg("Failed to auto-request history sync")
-					} else {
-						log.Info().Str("userID", txtid).Msg("History sync auto-requested successfully")
-					}
-				}
-				
-				// After a delay, also send stored history to webhook
-				time.Sleep(10 * time.Second)
-				go sendStoredHistoryToWebhook(mycli)
-			}()
+			}
+			
+			// After a delay, also send stored history to webhook
+			time.Sleep(10 * time.Second)
+			go sendStoredHistoryToWebhook(mycli)
+		}()
+		
+	case *events.PushNameSetting:
+		log.Info().Str("userID", mycli.userID).Str("pushName", mycli.WAClient.Store.PushName).Msg("PushName updated")
+		// Send presence when pushname changes
+		if len(mycli.WAClient.Store.PushName) > 0 {
+			err := mycli.WAClient.SendPresence(context.Background(), types.PresenceAvailable)
+			if err != nil {
+				log.Warn().Err(err).Msg("Failed to send available presence on pushname update")
+			}
 		}
 	case *events.PairSuccess:
 		log.Info().Str("userid", mycli.userID).Str("token", mycli.token).Str("ID", evt.ID.String()).Str("BusinessName", evt.BusinessName).Str("Platform", evt.Platform).Msg("QR Pair Success")
