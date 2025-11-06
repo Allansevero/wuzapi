@@ -29,6 +29,9 @@ WORKDIR /root/
 # Copy the binary from builder stage
 COPY --from=builder /app/wuzapi .
 
+# Copy static files from builder stage
+COPY --from=builder /app/static ./static
+
 # Create necessary directories with proper permissions
 RUN mkdir -p /root/dbdata && \
     mkdir -p /root/files && \
