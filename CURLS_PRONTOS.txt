@@ -1,0 +1,107 @@
+# ========================================================================
+# WUZAPI - CURLS PRONTOS PARA USAR
+# Copie e cole, substituindo apenas TOKEN e NÚMERO
+# ========================================================================
+
+# ⚙️ SUBSTITUA AQUI:
+# TOKEN: seu_token_de_instancia
+# NUMERO: 5511999999999@s.whatsapp.net (número do contato)
+# GRUPO: 120363123456789012@g.us (JID do grupo)
+
+# ========================================================================
+# 1️⃣ MENSAGENS DE HOJE - Uso Mais Comum
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date=today" \
+  -H "token: seu_token_aqui"
+
+
+# ========================================================================
+# 2️⃣ MENSAGENS DE HOJE COM LIMITE (100 mensagens)
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date=today&limit=100" \
+  -H "token: seu_token_aqui"
+
+
+# ========================================================================
+# 3️⃣ MENSAGENS DE GRUPO DE HOJE
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=120363123456789012@g.us&date=today" \
+  -H "token: seu_token_aqui"
+
+
+# ========================================================================
+# 4️⃣ MENSAGENS DE UMA DATA ESPECÍFICA (ex: 06/11/2025)
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date=2025-11-06" \
+  -H "token: seu_token_aqui"
+
+
+# ========================================================================
+# 5️⃣ MENSAGENS DOS ÚLTIMOS 7 DIAS
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date_from=2025-10-30" \
+  -H "token: seu_token_aqui"
+
+
+# ========================================================================
+# 6️⃣ MENSAGENS ENTRE DUAS DATAS
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date_from=2025-11-01&date_to=2025-11-06" \
+  -H "token: seu_token_aqui"
+
+
+# ========================================================================
+# 7️⃣ LISTAR TODOS OS CHATS COM MENSAGENS (ÍNDICE)
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=index" \
+  -H "token: seu_token_aqui"
+
+
+# ========================================================================
+# 8️⃣ SALVAR EM ARQUIVO JSON
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date=today" \
+  -H "token: seu_token_aqui" > mensagens_hoje.json
+
+
+# ========================================================================
+# 9️⃣ COM JQ PARA FORMATAÇÃO BONITA
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date=today" \
+  -H "token: seu_token_aqui" | jq '.'
+
+
+# ========================================================================
+# 🔟 APENAS QUANTIDADE DE MENSAGENS
+# ========================================================================
+
+curl -X GET "http://localhost:8080/chat/history?chat_jid=5511999999999@s.whatsapp.net&date=today" \
+  -H "token: seu_token_aqui" | jq '.data | length'
+
+
+# ========================================================================
+# FORMATOS DE DATA ACEITOS:
+# ========================================================================
+# date=today                    → Mensagens de hoje
+# date=2025-11-06               → Mensagens do dia 06/11/2025
+# date_from=2025-11-01          → Mensagens a partir de 01/11
+# date_to=2025-11-06            → Mensagens até 06/11
+# date_from=X&date_to=Y         → Mensagens entre duas datas
+# limit=100                     → Limita a 100 mensagens (padrão: 50)
+
+# ========================================================================
+# FORMATOS DE CHAT_JID:
+# ========================================================================
+# Contato:  5511999999999@s.whatsapp.net
+# Grupo:    120363123456789012@g.us
+# Índice:   index (lista todos os chats)
+

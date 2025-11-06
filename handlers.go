@@ -5857,25 +5857,100 @@ func (s *server) GetHistory() http.HandlerFunc {
 			}
 		}
 
+		// Parse date filters
+		dateFromStr := r.URL.Query().Get("date_from")
+		dateToStr := r.URL.Query().Get("date_to")
+		dateStr := r.URL.Query().Get("date") // For single date filter (today, specific date)
+
+		var dateFrom, dateTo time.Time
+		var hasDateFilter bool
+
+		if dateStr != "" {
+			// Single date filter (e.g., "2025-11-06" or "today")
+			if dateStr == "today" {
+				now := time.Now()
+				dateFrom = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+				dateTo = time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 999999999, now.Location())
+			} else {
+				parsedDate, err := time.Parse("2006-01-02", dateStr)
+				if err != nil {
+					s.Respond(w, r, http.StatusBadRequest, errors.New("invalid date format. Use YYYY-MM-DD or 'today'"))
+					return
+				}
+				dateFrom = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, parsedDate.Location())
+				dateTo = time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 23, 59, 59, 999999999, parsedDate.Location())
+			}
+			hasDateFilter = true
+		} else if dateFromStr != "" || dateToStr != "" {
+			// Range filter
+			if dateFromStr != "" {
+				parsedFrom, err := time.Parse("2006-01-02", dateFromStr)
+				if err != nil {
+					s.Respond(w, r, http.StatusBadRequest, errors.New("invalid date_from format. Use YYYY-MM-DD"))
+					return
+				}
+				dateFrom = time.Date(parsedFrom.Year(), parsedFrom.Month(), parsedFrom.Day(), 0, 0, 0, 0, parsedFrom.Location())
+			}
+			if dateToStr != "" {
+				parsedTo, err := time.Parse("2006-01-02", dateToStr)
+				if err != nil {
+					s.Respond(w, r, http.StatusBadRequest, errors.New("invalid date_to format. Use YYYY-MM-DD"))
+					return
+				}
+				dateTo = time.Date(parsedTo.Year(), parsedTo.Month(), parsedTo.Day(), 23, 59, 59, 999999999, parsedTo.Location())
+			}
+			hasDateFilter = dateFromStr != "" || dateToStr != ""
+		}
+
 		var query string
+		var args []interface{}
+
 		if s.db.DriverName() == "postgres" {
 			query = `
                 SELECT id, user_id, chat_jid, sender_jid, message_id, timestamp, message_type, text_content, media_link, COALESCE(quoted_message_id, '') as quoted_message_id, COALESCE(datajson, '') as datajson
                 FROM message_history
-                WHERE user_id = $1 AND chat_jid = $2
-                ORDER BY timestamp DESC
-                LIMIT $3`
+                WHERE user_id = $1 AND chat_jid = $2`
+			args = []interface{}{txtid, chatJID}
+			
+			if hasDateFilter {
+				if !dateFrom.IsZero() {
+					args = append(args, dateFrom)
+					query += fmt.Sprintf(" AND timestamp >= $%d", len(args))
+				}
+				if !dateTo.IsZero() {
+					args = append(args, dateTo)
+					query += fmt.Sprintf(" AND timestamp <= $%d", len(args))
+				}
+			}
+			
+			query += " ORDER BY timestamp DESC"
+			args = append(args, limit)
+			query += fmt.Sprintf(" LIMIT $%d", len(args))
 		} else { // sqlite
 			query = `
                 SELECT id, user_id, chat_jid, sender_jid, message_id, timestamp, message_type, text_content, media_link, COALESCE(quoted_message_id, '') as quoted_message_id, COALESCE(datajson, '') as datajson
                 FROM message_history
-                WHERE user_id = ? AND chat_jid = ?
-                ORDER BY timestamp DESC
-                LIMIT ?`
+                WHERE user_id = ? AND chat_jid = ?`
+			args = []interface{}{txtid, chatJID}
+			
+			if hasDateFilter {
+				if !dateFrom.IsZero() {
+					args = append(args, dateFrom)
+					query += " AND timestamp >= ?"
+				}
+				if !dateTo.IsZero() {
+					args = append(args, dateTo)
+					query += " AND timestamp <= ?"
+				}
+			}
+			
+			query += " ORDER BY timestamp DESC"
+			args = append(args, limit)
+			query += " LIMIT ?"
 		}
 
 		var messages []HistoryMessage
-		err := s.db.Select(&messages, query, txtid, chatJID, limit)
+		err := s.db.Select(&messages, query, args...)
 		if err != nil {
 			s.Respond(w, r, http.StatusInternalServerError, fmt.Errorf("failed to get message history: %w", err))
 			return

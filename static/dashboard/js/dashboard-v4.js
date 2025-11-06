@@ -451,9 +451,23 @@
                     // Check if connected using the boolean field
                     if (instance && (instance.connected?.Bool === true || instance.connected === true)) {
                         clearInterval(interval);
-                        Modals.close('qrModal');
-                        await loadInstances();
-                        alert('WhatsApp conectado com sucesso!');
+                        
+                        // Mostrar mensagem de instrução com GIF
+                        const qrContainer = document.getElementById('qrCodeContainer');
+                        qrContainer.innerHTML = `
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <img src="/images/aba.gif" alt="Feche o WhatsApp" class="w-48 h-48 object-contain">
+                                <h3 class="text-lg font-bold text-gray-800">Feche seu WhatsApp para a conexão efetivar</h3>
+                                <p class="text-sm text-gray-600 text-center">Ao abrir novamente estará conectado corretamente</p>
+                            </div>
+                        `;
+                        
+                        // Fechar modal após 10 segundos
+                        setTimeout(async () => {
+                            Modals.close('qrModal');
+                            await loadInstances();
+                            alert('WhatsApp conectado com sucesso!');
+                        }, 10000);
                     }
                 } catch (error) {
                     console.error('Error polling status:', error);

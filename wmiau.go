@@ -792,6 +792,20 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 		postmap["type"] = "Connected"
 		dowebhook = 1
 		
+		// Wait a moment to ensure connection is stable
+		time.Sleep(2 * time.Second)
+		
+		// Verify if client is actually logged in and connected
+		if !mycli.WAClient.IsLoggedIn() {
+			log.Warn().Str("userID", mycli.userID).Msg("Connected event received but client is not logged in yet")
+			return
+		}
+		
+		if !mycli.WAClient.IsConnected() {
+			log.Warn().Str("userID", mycli.userID).Msg("Connected event received but client is not actually connected")
+			return
+		}
+		
 		// Send presence available when connecting
 		err := mycli.WAClient.SendPresence(context.Background(), types.PresenceAvailable)
 		if err != nil {
@@ -800,18 +814,25 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 			log.Info().Msg("Marked self as available")
 		}
 		
-		// Mark as connected ONLY on actual Connected event
+		// Mark as connected ONLY after verification
 		sqlStmt := `UPDATE users SET connected=1 WHERE id=$1`
 		_, err = mycli.db.Exec(sqlStmt, mycli.userID)
 		if err != nil {
 			log.Error().Err(err).Msg(sqlStmt)
 			return
 		}
-		log.Info().Str("userID", mycli.userID).Msg("Marked as connected in database")
+		log.Info().Str("userID", mycli.userID).Msg("Marked as connected in database after verification")
 
 		// Auto-request history sync when connected - with delay to avoid conflicts
 		go func() {
 			time.Sleep(10 * time.Second) // Increased delay to let WhatsApp stabilize
+			
+			// Double check connection before requesting history
+			if !mycli.WAClient.IsConnected() || !mycli.WAClient.IsLoggedIn() {
+				log.Warn().Str("userID", txtid).Msg("Skipping history sync - client is not connected/logged in")
+				return
+			}
+			
 			log.Info().Str("userID", txtid).Msg("Auto-requesting history sync after connection")
 
 			info, found := lastMessageCache.Get(txtid)
@@ -864,7 +885,24 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 			log.Info().Str("jid", jid.String()).Str("userid", txtid).Str("token", token).Msg("User information set")
 		}
 	case *events.StreamReplaced:
-		log.Info().Msg("Received StreamReplaced event")
+		log.Warn().Msg("Received StreamReplaced event - WhatsApp is open on another device")
+		postmap["type"] = "StreamReplaced"
+		postmap["message"] = "WhatsApp web session was replaced by another device. Please close WhatsApp on your phone or use pairing mode."
+		dowebhook = 1
+		
+		// Mark as disconnected in database
+		sqlStmt := `UPDATE users SET connected=0 WHERE id=$1`
+		_, err := mycli.db.Exec(sqlStmt, mycli.userID)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to update connection status on StreamReplaced")
+		}
+		
+		// Disconnect client properly
+		go func() {
+			time.Sleep(2 * time.Second)
+			mycli.WAClient.Disconnect()
+			log.Info().Str("userID", mycli.userID).Msg("Client disconnected due to StreamReplaced event")
+		}()
 		return
 	case *events.Message:
 

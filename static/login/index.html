@@ -317,8 +317,9 @@
                     if (response.ok) {
                         // Armazenar token e redirecionar
                         localStorage.setItem('authToken', data.data.token);
+                        localStorage.setItem('auth_token', data.data.token); // Compatibilidade com dashboard
                         alert('Login realizado com sucesso!');
-                        window.location.href = '/dashboard/';
+                        window.location.href = '/dashboard/user-dashboard-v4.html';
                     } else {
                         alert('Erro no login: ' + data.error);
                     }
