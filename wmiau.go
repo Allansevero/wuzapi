@@ -527,8 +527,8 @@ func (s *server) startClient(userID string, textjid string, token string, subscr
 	// Now we can use the client with the manager
 	clientManager.SetWhatsmeowClient(userID, client)
 
-	store.DeviceProps.PlatformType = waCompanionReg.DeviceProps_UNKNOWN.Enum()
-	store.DeviceProps.Os = osName
+	store.DeviceProps.PlatformType = waCompanionReg.DeviceProps_CHROME.Enum()
+	store.DeviceProps.Os = proto.String("Chrome (Linux)")
 
 	mycli := MyClient{client, 1, userID, token, subscriptions, s.db, s}
 	mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
