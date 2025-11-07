@@ -18,21 +18,18 @@ services:
       - SESSION_DEVICE_NAME=${SESSION_DEVICE_NAME:-Metrizap}
       - TZ=${TZ:-America/Sao_Paulo}
       
-      # Database Configuration (Leave empty to use SQLite, set to use PostgreSQL)
-      # For PostgreSQL: set all DB_* variables below
-      # For SQLite: leave all DB_* variables empty
-      - DB_USER=${DB_USER:-}
-      - DB_PASSWORD=${DB_PASSWORD:-}
-      - DB_NAME=${DB_NAME:-}
-      - DB_HOST=${DB_HOST:-}
-      - DB_PORT=${DB_PORT:-}
-      - DB_SSLMODE=${DB_SSLMODE:-false}
+      # Database Configuration - Mapped from EasyPanel's PostgreSQL service
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_HOST=postgres  # Default service name for the database in EasyPanel
+      - DB_PORT=5432
+      - DB_SSLMODE=disable
       
       # RabbitMQ (Optional)
       - RABBITMQ_URL=${RABBITMQ_URL:-}
       - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-whatsapp_events}
     volumes:
-      - wuzapi-dbdata:/root/dbdata:rw
       - wuzapi-files:/root/files:rw
     networks:
       - wuzapi-network
@@ -44,5 +41,4 @@ networks:
     driver: bridge
 
 volumes:
-  wuzapi-dbdata:
   wuzapi-files:
