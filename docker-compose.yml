@@ -32,8 +32,8 @@ services:
       - RABBITMQ_URL=${RABBITMQ_URL:-}
       - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-whatsapp_events}
     volumes:
-      - ./dbdata:/root/dbdata:rw
-      - ./files:/root/files:rw
+      - wuzapi-dbdata:/root/dbdata:rw
+      - wuzapi-files:/root/files:rw
     networks:
       - wuzapi-network
     # Ensure proper permissions for volume mounts
@@ -42,3 +42,7 @@ services:
 networks:
   wuzapi-network:
     driver: bridge
+
+volumes:
+  wuzapi-dbdata:
+  wuzapi-files:
