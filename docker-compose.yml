@@ -18,13 +18,13 @@ services:
       - SESSION_DEVICE_NAME=${SESSION_DEVICE_NAME:-Metrizap}
       - TZ=${TZ:-America/Sao_Paulo}
       
-      # Database Configuration - Mapped from EasyPanel's PostgreSQL service
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - DB_NAME=${POSTGRES_DB}
-      - DB_HOST=postgres  # Default service name for the database in EasyPanel
+      # Database Configuration - Mapped from EasyPanel's PostgreSQL service- DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+  	  - DB_HOST=${DB_HOST} # <--- Mude isso também
+      - DB_PORT=${DB_PORT}
+      - DB_SSLMODE=${DB_SSLMODE}
       - DB_PORT=5432
-      - DB_SSLMODE=disable
       
       # RabbitMQ (Optional)
       - RABBITMQ_URL=${RABBITMQ_URL:-}
