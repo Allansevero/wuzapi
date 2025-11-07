@@ -215,7 +215,7 @@ func (s *server) GetUserConnectedInstanceCount(systemUserID int) (int, error) {
 	var query string
 	
 	if s.db.DriverName() == "postgres" {
-		query = `SELECT COUNT(*) FROM users WHERE system_user_id = $1 AND connected = true`
+		query = `SELECT COUNT(*) FROM users WHERE system_user_id = $1 AND connected = 1`
 	} else {
 		query = `SELECT COUNT(*) FROM users WHERE system_user_id = ? AND connected = 1`
 	}
