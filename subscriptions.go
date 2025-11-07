@@ -186,7 +186,12 @@ func (s *server) CheckSubscriptionExpired(systemUserID int) error {
 	}
 	
 	now := time.Now()
-	_, err := s.db.Exec(query, now, systemUserID, now)
+	var err error
+	if s.db.DriverName() == "postgres" {
+		_, err = s.db.Exec(query, now, systemUserID)
+	} else {
+		_, err = s.db.Exec(query, now, systemUserID, now)
+	}
 	return err
 }
 
