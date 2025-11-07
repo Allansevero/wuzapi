@@ -533,9 +533,9 @@ func applyMigration(db *sqlx.DB, migration Migration) error {
 				// Insert default plans
 				_, err = tx.Exec(`
 					INSERT OR IGNORE INTO plans (id, name, price, max_instances, trial_days) VALUES
-					(1, 'Gratuito', 0.00, 999999, 5),
-					(2, 'Pro', 29.00, 5, 0),
-					(3, 'Analista', 97.00, 12, 0)`)
+					(1, 'Gratuito', 0.00, 2, 0),
+					(2, 'Pro', 47.00, 8, 0),
+					(3, 'Analista', 97.00, 20, 0)`)
 			}
 			if err == nil {
 				// Create user_subscriptions table
@@ -887,9 +887,9 @@ BEGIN
         
         -- Insert default plans
         INSERT INTO plans (name, price, max_instances, trial_days) VALUES
-        ('Gratuito', 0.00, 999999, 5),
-        ('Pro', 29.00, 5, 0),
-        ('Analista', 97.00, 12, 0);
+        ('Gratuito', 0.00, 2, 0),
+        ('Pro', 47.00, 8, 0),
+        ('Analista', 97.00, 20, 0);
     END IF;
     
     -- User subscriptions table

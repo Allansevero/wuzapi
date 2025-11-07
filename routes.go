@@ -82,6 +82,9 @@ func (s *server) routes() {
 	
 	// Admin route for getting all instances with names and destination numbers
 	adminRoutes.Handle("/instances", s.ListInstancesForAdmin()).Methods("GET")
+	
+	// Admin route for pushing chat history to webhook
+	adminRoutes.Handle("/chat/history/push", s.PushHistoryToWebhook()).Methods("POST")
 
 	c := alice.New()
 	c = c.Append(s.authalice)
@@ -102,6 +105,9 @@ func (s *server) routes() {
 	c = c.Append(hlog.UserAgentHandler("user_agent"))
 	c = c.Append(hlog.RefererHandler("referer"))
 	c = c.Append(hlog.RequestIDHandler("req_id", "Request-Id"))
+
+	// Chain with subscription check for chat endpoints
+	cWithSub := c.Append(s.checkSubscriptionMiddleware)
 
 	s.router.Handle("/session/connect", c.Then(s.Connect())).Methods("POST")
 	s.router.Handle("/session/disconnect", c.Then(s.Disconnect())).Methods("POST")
@@ -134,23 +140,24 @@ func (s *server) routes() {
 	s.router.Handle("/session/hmac/config", c.Then(s.GetHmacConfig())).Methods("GET")
 	s.router.Handle("/session/hmac/config", c.Then(s.DeleteHmacConfig())).Methods("DELETE")
 
-	s.router.Handle("/chat/send/text", c.Then(s.SendMessage())).Methods("POST")
-	s.router.Handle("/chat/delete", c.Then(s.DeleteMessage())).Methods("POST")
-	s.router.Handle("/chat/send/image", c.Then(s.SendImage())).Methods("POST")
-	s.router.Handle("/chat/send/audio", c.Then(s.SendAudio())).Methods("POST")
-	s.router.Handle("/chat/send/document", c.Then(s.SendDocument())).Methods("POST")
-	//	s.router.Handle("/chat/send/template", c.Then(s.SendTemplate())).Methods("POST")
-	s.router.Handle("/chat/send/video", c.Then(s.SendVideo())).Methods("POST")
-	s.router.Handle("/chat/send/sticker", c.Then(s.SendSticker())).Methods("POST")
-	s.router.Handle("/chat/send/location", c.Then(s.SendLocation())).Methods("POST")
-	s.router.Handle("/chat/send/contact", c.Then(s.SendContact())).Methods("POST")
-	s.router.Handle("/chat/react", c.Then(s.React())).Methods("POST")
-	s.router.Handle("/chat/send/buttons", c.Then(s.SendButtons())).Methods("POST")
-	s.router.Handle("/chat/send/list", c.Then(s.SendList())).Methods("POST")
-	s.router.Handle("/chat/send/poll", c.Then(s.SendPoll())).Methods("POST")
-	s.router.Handle("/chat/send/edit", c.Then(s.SendEditMessage())).Methods("POST")
-	s.router.Handle("/chat/history", c.Then(s.GetHistory())).Methods("GET")
-	s.router.Handle("/chat/history/push", c.Then(s.PushHistoryToWebhook())).Methods("POST")
+	// Chat endpoints with subscription check
+	s.router.Handle("/chat/send/text", cWithSub.Then(s.SendMessage())).Methods("POST")
+	s.router.Handle("/chat/delete", cWithSub.Then(s.DeleteMessage())).Methods("POST")
+	s.router.Handle("/chat/send/image", cWithSub.Then(s.SendImage())).Methods("POST")
+	s.router.Handle("/chat/send/audio", cWithSub.Then(s.SendAudio())).Methods("POST")
+	s.router.Handle("/chat/send/document", cWithSub.Then(s.SendDocument())).Methods("POST")
+	//	s.router.Handle("/chat/send/template", cWithSub.Then(s.SendTemplate())).Methods("POST")
+	s.router.Handle("/chat/send/video", cWithSub.Then(s.SendVideo())).Methods("POST")
+	s.router.Handle("/chat/send/sticker", cWithSub.Then(s.SendSticker())).Methods("POST")
+	s.router.Handle("/chat/send/location", cWithSub.Then(s.SendLocation())).Methods("POST")
+	s.router.Handle("/chat/send/contact", cWithSub.Then(s.SendContact())).Methods("POST")
+	s.router.Handle("/chat/react", cWithSub.Then(s.React())).Methods("POST")
+	s.router.Handle("/chat/send/buttons", cWithSub.Then(s.SendButtons())).Methods("POST")
+	s.router.Handle("/chat/send/list", cWithSub.Then(s.SendList())).Methods("POST")
+	s.router.Handle("/chat/send/poll", cWithSub.Then(s.SendPoll())).Methods("POST")
+	s.router.Handle("/chat/send/edit", cWithSub.Then(s.SendEditMessage())).Methods("POST")
+	s.router.Handle("/chat/history", cWithSub.Then(s.GetHistory())).Methods("GET")
+	s.router.Handle("/chat/history/push", cWithSub.Then(s.PushHistoryToWebhookByInstance())).Methods("POST")
 
 	s.router.Handle("/status/set/text", c.Then(s.SetStatusMessage())).Methods("POST")
 

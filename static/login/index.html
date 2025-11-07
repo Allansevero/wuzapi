@@ -187,10 +187,12 @@
                             <input 
                                 type="tel" 
                                 id="phone" 
-                                placeholder="51 99999-9999" 
+                                placeholder="(51) 9561-1075" 
+                                maxlength="15"
                                 class="w-full pl-20 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mz-green focus:border-transparent transition-all"
                             >
                         </div>
+                        <p class="mt-1 text-xs text-gray-500">Sem o 9 na frente</p>
                     </div>
                     
                     <!-- Campo Senha -->
@@ -261,6 +263,29 @@
             showLoginBtn.addEventListener('click', () => {
                 registerBox.classList.add('hidden');
                 loginBox.classList.remove('hidden');
+            });
+
+            // --- Máscara de Telefone ---
+            const phoneInput = document.getElementById('phone');
+            
+            phoneInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é número
+                
+                // Limita a 10 dígitos (DDD + 8 números)
+                value = value.substring(0, 10);
+                
+                // Aplica a máscara (DD) XXXX-XXXX
+                if (value.length > 0) {
+                    if (value.length <= 2) {
+                        value = `(${value}`;
+                    } else if (value.length <= 6) {
+                        value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+                    } else {
+                        value = `(${value.substring(0, 2)}) ${value.substring(2, 6)}-${value.substring(6)}`;
+                    }
+                }
+                
+                e.target.value = value;
             });
 
             // --- Lógica do Toggle de Senha (LOGIN) ---
@@ -336,8 +361,14 @@
                 const nome = document.getElementById('nome').value;
                 const sobrenome = document.getElementById('sobrenome').value;
                 const email = document.getElementById('register_email').value;
-                const phone = document.getElementById('phone').value;
+                const phone = document.getElementById('phone').value.replace(/\D/g, ''); // Remove máscara
                 const password = document.getElementById('register_password').value;
+                
+                // Valida telefone (deve ter 10 dígitos: DDD + 8 números)
+                if (phone.length !== 10) {
+                    alert('Telefone inválido. Digite DDD + 8 dígitos (sem o 9 na frente)');
+                    return;
+                }
                 
                 try {
                     const response = await fetch('/auth/register', {
@@ -349,7 +380,7 @@
                             name: nome,
                             lastname: sobrenome,
                             email: email,
-                            phone: phone,
+                            phone: `55${phone}`, // Adiciona código do país
                             fullname: `${nome} ${sobrenome}`,
                             password: password
                         })

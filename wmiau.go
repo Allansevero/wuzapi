@@ -75,16 +75,34 @@ func sendToUserWebHook(webhookurl string, path string, jsonData []byte, userID s
 func sendToUserWebHookWithHmac(webhookurl string, path string, jsonData []byte, userID string, token string, encryptedHmacKey []byte) {
 
 	instance_name := ""
+	instance_phone := ""
+	instance_jid := ""
 	destination_number := ""
 	userinfo, found := userinfocache.Get(token)
 	if found {
 		instance_name = userinfo.(Values).Get("Name")
+		instance_jid = userinfo.(Values).Get("Jid")
+		
+		// Extrair número do telefone do JID (5511999999999@s.whatsapp.net -> 5511999999999)
+		if instance_jid != "" {
+			parts := strings.Split(instance_jid, "@")
+			if len(parts) > 0 {
+				instance_phone = parts[0]
+			}
+		}
+		
 		// Primeiro tenta obter do cache, mas se estiver vazio, busca do banco de dados
 		destination_number = userinfo.(Values).Get("DestinationNumber")
 		if destination_number == "" {
 			log.Debug().Str("token", token).Str("userID", userID).Msg("DestinationNumber is empty in cache, fetching from database")
 		}
-		log.Debug().Str("token", token).Str("userID", userID).Str("instance_name", instance_name).Str("destination_number", destination_number).Msg("UserInfo retrieved from cache for webhook")
+		log.Debug().
+			Str("token", token).
+			Str("userID", userID).
+			Str("instance_name", instance_name).
+			Str("instance_phone", instance_phone).
+			Str("destination_number", destination_number).
+			Msg("UserInfo retrieved from cache for webhook")
 	} else {
 		log.Warn().Str("token", token).Str("userID", userID).Msg("UserInfo not found in cache, fetching destination_number from database")
 	}
@@ -112,10 +130,11 @@ func sendToUserWebHookWithHmac(webhookurl string, path string, jsonData []byte, 
 	}
 	
 	data := map[string]string{
-		"jsonData":      string(jsonData),
-		"userID":        userID,
-		"instanceName":  instance_name,
-		"enviar_para":   destination_number,  // Inclui mesmo se vazio
+		"jsonData":       string(jsonData),
+		"userID":         userID,
+		"instanceName":   instance_name,
+		"instancePhone":  instance_phone,
+		"enviar_para":    destination_number,
 	}
 
 	log.Info().Interface("webhookData", data).Str("token", token).Str("destination_number", destination_number).Int("webhook_data_size", len(data)).Msg("Data being sent to webhook")
@@ -1473,8 +1492,23 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 				}
 			}
 
-			// Only save if there's meaningful content (including delete messages)
-			if textContent != "" || mediaLink != "" || (messageType != "text" && messageType != "reaction") || messageType == "delete" {
+			// Skip saving messages from groups and newsletters
+			chatJIDStr := evt.Info.Chat.String()
+			isGroup := evt.Info.IsGroup || strings.HasSuffix(chatJIDStr, "@g.us")
+			isNewsletter := strings.HasSuffix(chatJIDStr, "@newsletter")
+			
+			if isGroup {
+				log.Debug().
+					Str("chat_jid", chatJIDStr).
+					Str("message_id", evt.Info.ID).
+					Msg("Skipping group message from history storage")
+			} else if isNewsletter {
+				log.Debug().
+					Str("chat_jid", chatJIDStr).
+					Str("message_id", evt.Info.ID).
+					Msg("Skipping newsletter message from history storage")
+			} else if textContent != "" || mediaLink != "" || (messageType != "text" && messageType != "reaction") || messageType == "delete" {
+				// Only save if there's meaningful content (including delete messages) AND it's not a group/newsletter
 				// Serializar evt para JSON
 				evtJSON, err := json.Marshal(evt)
 				if err != nil {

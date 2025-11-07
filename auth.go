@@ -232,7 +232,7 @@ func (s *server) Register() http.HandlerFunc {
 			return
 		}
 		
-		// Create default free trial subscription
+		// Create default free subscription
 		if err := s.CreateDefaultSubscription(userID); err != nil {
 			log.Error().Err(err).Msg("Failed to create default subscription")
 			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{

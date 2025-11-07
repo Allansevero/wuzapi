@@ -45,34 +45,31 @@ type UserSubscriptionDetails struct {
 	Plan Plan `json:"plan"`
 }
 
-// CreateDefaultSubscription creates a free trial subscription for new users
+// CreateDefaultSubscription creates a free subscription for new users
 func (s *server) CreateDefaultSubscription(systemUserID int) error {
 	// Get the free plan (ID 1)
 	freePlanID := 1
-	trialDays := 5
-	
-	expiresAt := time.Now().AddDate(0, 0, trialDays)
 	
 	var query string
 	if s.db.DriverName() == "postgres" {
 		query = `
-			INSERT INTO user_subscriptions (system_user_id, plan_id, started_at, expires_at, is_active)
-			VALUES ($1, $2, $3, $4, $5)
+			INSERT INTO user_subscriptions (system_user_id, plan_id, started_at, is_active)
+			VALUES ($1, $2, $3, $4)
 			RETURNING id`
 	} else {
 		query = `
-			INSERT INTO user_subscriptions (system_user_id, plan_id, started_at, expires_at, is_active)
-			VALUES (?, ?, ?, ?, ?)`
+			INSERT INTO user_subscriptions (system_user_id, plan_id, started_at, is_active)
+			VALUES (?, ?, ?, ?)`
 	}
 	
 	now := time.Now()
 	if s.db.DriverName() == "postgres" {
 		var id int
-		err := s.db.QueryRow(query, systemUserID, freePlanID, now, expiresAt, true).Scan(&id)
+		err := s.db.QueryRow(query, systemUserID, freePlanID, now, true).Scan(&id)
 		return err
 	}
 	
-	_, err := s.db.Exec(query, systemUserID, freePlanID, now, expiresAt, true)
+	_, err := s.db.Exec(query, systemUserID, freePlanID, now, true)
 	return err
 }
 
@@ -212,7 +209,27 @@ func (s *server) GetUserInstanceCount(systemUserID int) (int, error) {
 	return count, nil
 }
 
+// GetUserConnectedInstanceCount returns the number of CONNECTED instances for a user
+func (s *server) GetUserConnectedInstanceCount(systemUserID int) (int, error) {
+	var count int
+	var query string
+	
+	if s.db.DriverName() == "postgres" {
+		query = `SELECT COUNT(*) FROM users WHERE system_user_id = $1 AND connected = true`
+	} else {
+		query = `SELECT COUNT(*) FROM users WHERE system_user_id = ? AND connected = 1`
+	}
+	
+	err := s.db.Get(&count, query, systemUserID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count connected instances: %w", err)
+	}
+	
+	return count, nil
+}
+
 // CanCreateInstance checks if user can create more instances based on their plan
+// This checks CONNECTED instances only
 func (s *server) CanCreateInstance(systemUserID int) (bool, error) {
 	// Check and update expired subscription
 	if err := s.CheckSubscriptionExpired(systemUserID); err != nil {
@@ -243,13 +260,13 @@ func (s *server) CanCreateInstance(systemUserID int) (bool, error) {
 		return false, nil
 	}
 	
-	// Get current instance count
-	count, err := s.GetUserInstanceCount(systemUserID)
+	// Get current CONNECTED instance count
+	count, err := s.GetUserConnectedInstanceCount(systemUserID)
 	if err != nil {
-		return false, fmt.Errorf("failed to get instance count: %w", err)
+		return false, fmt.Errorf("failed to get connected instance count: %w", err)
 	}
 	
-	// Check if can create more instances
+	// Check if can create more instances based on connected count
 	return count < subscription.Plan.MaxInstances, nil
 }
 
@@ -289,4 +306,31 @@ func (s *server) AddSubscriptionHistory(systemUserID, planID int, startedAt time
 	
 	_, err := s.db.Exec(query, systemUserID, planID, startedAt, endedAt)
 	return err
+}
+
+// HasValidSubscription checks if user has an active and non-expired subscription
+func (s *server) HasValidSubscription(systemUserID int) (bool, error) {
+// Check and update expired subscriptions
+if err := s.CheckSubscriptionExpired(systemUserID); err != nil {
+return false, fmt.Errorf("failed to check subscription expiration: %w", err)
+}
+
+// Get active subscription
+subscription, err := s.GetActiveSubscription(systemUserID)
+if err != nil {
+return false, fmt.Errorf("failed to get subscription: %w", err)
+}
+
+// No subscription found
+if subscription == nil {
+return false, nil
+}
+
+// Check if subscription is expired
+if subscription.ExpiresAt != nil && subscription.ExpiresAt.Before(time.Now()) {
+return false, nil
+}
+
+// Has valid subscription
+return true, nil
 }

@@ -324,6 +324,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Fix plans in database (update from old values to new ones)
+	tempServer := &server{db: db}
+	if err = tempServer.FixPlansInDatabase(); err != nil {
+		log.Warn().Err(err).Msg("Failed to update plans in database - continuing anyway")
+	}
+
 	var dbLog waLog.Logger
 	if *waDebug != "" {
 		dbLog = waLog.Stdout("Database", *waDebug, *colorOutput)

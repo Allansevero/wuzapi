@@ -226,8 +226,12 @@ func callHookWithHmac(myurl string, payload map[string]string, userID string, en
 			var postmap map[string]interface{}
 			err := json.Unmarshal([]byte(jsonStr), &postmap)
 			if err == nil {
+				// Add instance information to the body
 				if instanceName, ok := payload["instanceName"]; ok {
-					postmap["instanceName"] = instanceName
+					postmap["instance_name"] = instanceName
+				}
+				if instancePhone, ok := payload["instancePhone"]; ok {
+					postmap["instance_phone"] = instancePhone
 				}
 
 				postmap["userID"] = userID

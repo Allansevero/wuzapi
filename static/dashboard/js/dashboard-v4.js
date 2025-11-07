@@ -164,20 +164,20 @@
         updateInstancesProgress() {
             if (!state.subscription) return;
 
+            const planName = state.subscription.plan?.name || '';
             const maxInstances = state.subscription.max_instances || state.subscription.plan?.max_instances || 0;
-            const instanceCount = state.subscription.instance_count || state.instances.length;
-            const remaining = state.subscription.instances_remaining ?? Math.max(0, maxInstances - instanceCount);
-            const percentage = maxInstances > 0 ? (instanceCount / maxInstances) * 100 : 0;
+            const connectedCount = state.subscription.connected_count || 0;
+            const remaining = state.subscription.instances_remaining ?? Math.max(0, maxInstances - connectedCount);
+            const percentage = maxInstances > 0 ? (connectedCount / maxInstances) * 100 : 0;
+            
+            const progressText = document.getElementById('remainingInstances');
+            const progressBar = document.getElementById('progressBar');
 
-            // Se for plano gratuito (muito alto), mostrar "Ilimitado"
-            if (maxInstances > 1000) {
-                document.getElementById('remainingInstances').textContent = 'Instâncias ilimitadas';
-                document.getElementById('progressBar').style.width = '100%';
-            } else {
-                document.getElementById('remainingInstances').textContent = 
-                    `${remaining} de ${maxInstances} contas restantes`;
-                document.getElementById('progressBar').style.width = `${percentage}%`;
-            }
+            // Mostrar WhatsApp conectados e restantes
+            progressText.textContent = `${connectedCount} de ${maxInstances} WhatsApp conectado${connectedCount !== 1 ? 's' : ''} (${remaining} disponível${remaining !== 1 ? 'eis' : ''})`;
+            progressBar.style.width = `${percentage}%`;
+            progressBar.classList.add('bg-mz-green');
+            progressBar.classList.remove('bg-mz-orange-dark', 'bg-mz-red');
 
             // Verificar se o plano expirou
             const isExpired = state.subscription.is_expired === true;
@@ -710,11 +710,12 @@
             if (response.subscription) {
                 state.subscription = {
                     ...response.subscription,
-                    instance_count: response.instance_count,
+                    connected_count: response.connected_count,
                     instances_remaining: response.instances_remaining,
                     max_instances: response.max_instances,
                     plan_id: response.plan_id,
                     is_expired: response.is_expired,
+                    expires_at: response.subscription.expires_at,
                     plan: response.subscription.plan
                 };
             } else {
