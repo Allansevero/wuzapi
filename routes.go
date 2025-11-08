@@ -58,6 +58,7 @@ func (s *server) routes() {
 	// Profile routes
 	userRoutes.Handle("/profile", s.GetMyProfile()).Methods("GET")
 	userRoutes.Handle("/profile", s.UpdateMyProfile()).Methods("PUT")
+	userRoutes.Handle("/profile", s.DeleteMyProfile()).Methods("DELETE")
 	
 	// Instance routes
 	userRoutes.Handle("/instances", s.ListMyInstances()).Methods("GET")

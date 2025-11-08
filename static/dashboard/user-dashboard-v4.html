@@ -208,11 +208,30 @@
                         </div>
                     </div>
 
-                    <!-- Plano Atual -->
-                    <div>
-                        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Plano atual</h2>
-                        <div id="plansContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Plans will be loaded dynamically -->
+
+
+                    <!-- Seção de Segurança e Exclusão de Conta -->
+                    <div class="mt-8 pt-8 border-t border-gray-200">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Segurança da Conta</h2>
+                        
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-6 h-6 text-red-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-red-800">Excluir Conta</h3>
+                                    <p class="text-red-600 mt-1">Esta ação é irreversível e removerá permanentemente sua conta e todos os dados associados.</p>
+                                    
+                                    <button id="deleteAccountBtn" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                                        Excluir minha conta
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -276,6 +295,45 @@
                 </button>
                 <button id="confirmAddInstanceBtn" class="flex-1 bg-mz-green text-white font-medium py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
                     Sim, adicionar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==== Modal Confirmação Exclusão de Conta ==== -->
+    <div id="deleteAccountModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md relative text-center">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Excluir sua conta permanentemente?</h3>
+            <p class="text-gray-600 mb-6">Esta ação é irreversível e removerá todos os seus dados, instâncias e configurações. Esta ação afeta todos os números vinculados.</p>
+            
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-left mb-6">
+                <h4 class="font-medium text-red-800 mb-2">O que será removido:</h4>
+                <ul class="text-sm text-red-600 space-y-1">
+                    <li class="flex items-start">
+                        <svg class="w-4 h-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <span>Todas as instâncias conectadas</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-4 h-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <span>Histórico de mensagens</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-4 h-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <span>Configurações e preferências</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-4 h-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <span>Credenciais de integração</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="flex space-x-4">
+                <button id="cancelDeleteAccountBtn" class="flex-1 bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                    Cancelar
+                </button>
+                <button id="confirmDeleteAccountBtn" class="flex-1 bg-red-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
+                    Sim, excluir conta
                 </button>
             </div>
         </div>

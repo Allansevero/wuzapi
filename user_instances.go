@@ -511,3 +511,161 @@ func (s *server) UpdateMyProfile() http.HandlerFunc {
 		})
 	}
 }
+
+// Delete profile for authenticated system user
+func (s *server) DeleteMyProfile() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		systemUserID, ok := r.Context().Value("system_user_id").(int)
+		if !ok {
+			s.respondWithJSON(w, http.StatusUnauthorized, map[string]interface{}{
+				"code":    http.StatusUnauthorized,
+				"error":   "unauthorized",
+				"success": false,
+			})
+			return
+		}
+
+		// Start a transaction to ensure atomicity
+		tx, err := s.db.Beginx()
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to begin transaction for profile deletion")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "database error",
+				"success": false,
+			})
+			return
+		}
+		defer tx.Rollback()
+
+		// First, get all instance IDs associated with this user to clean up connections
+		var instanceIDs []string
+		err = tx.Select(&instanceIDs, "SELECT id FROM users WHERE system_user_id = $1", systemUserID)
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to get instances for user")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "failed to get user instances",
+				"success": false,
+			})
+			return
+		}
+
+		// Clean up active connections and clients for each instance
+		for _, instanceID := range instanceIDs {
+			// Logout if logged in
+			if client := clientManager.GetWhatsmeowClient(instanceID); client != nil {
+				if client.IsLoggedIn() {
+					client.Logout(r.Context())
+				}
+				if client.IsConnected() {
+					client.Disconnect()
+				}
+				clientManager.DeleteWhatsmeowClient(instanceID)
+				clientManager.DeleteMyClient(instanceID)
+				clientManager.DeleteHTTPClient(instanceID)
+			}
+			
+			// Remove from killchannel
+			if channel, exists := killchannel[instanceID]; exists {
+				close(channel)
+				delete(killchannel, instanceID)
+			}
+		}
+
+		// Remove user from cache
+		var userToken string
+		err = tx.Get(&userToken, "SELECT token FROM users WHERE system_user_id = $1 LIMIT 1", systemUserID)
+		if err != nil && err != sql.ErrNoRows {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Could not retrieve user token for cache removal")
+			// Continue with deletion anyway
+		} else if userToken != "" {
+			userinfocache.Delete(userToken)
+		}
+
+		// Delete all instances and their associated data
+		_, err = tx.Exec("DELETE FROM message_history WHERE user_id IN (SELECT id FROM users WHERE system_user_id = $1)", systemUserID)
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to delete message history")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "failed to delete message history",
+				"success": false,
+			})
+			return
+		}
+
+		// Delete all instances
+		_, err = tx.Exec("DELETE FROM users WHERE system_user_id = $1", systemUserID)
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to delete user instances")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "failed to delete user instances",
+				"success": false,
+			})
+			return
+		}
+
+		// Delete user subscriptions
+		_, err = tx.Exec("DELETE FROM user_subscriptions WHERE system_user_id = $1", systemUserID)
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to delete user subscriptions")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "failed to delete user subscriptions",
+				"success": false,
+			})
+			return
+		}
+
+		// Delete subscription history
+		_, err = tx.Exec("DELETE FROM subscription_history WHERE system_user_id = $1", systemUserID)
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to delete subscription history")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "failed to delete subscription history",
+				"success": false,
+			})
+			return
+		}
+
+		// Finally, delete the system user
+		_, err = tx.Exec("DELETE FROM system_users WHERE id = $1", systemUserID)
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to delete system user")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "failed to delete profile",
+				"success": false,
+			})
+			return
+		}
+
+		// Commit transaction
+		err = tx.Commit()
+		if err != nil {
+			log.Error().Err(err).Int("system_user_id", systemUserID).Msg("Failed to commit transaction")
+			s.respondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"code":    http.StatusInternalServerError,
+				"error":   "failed to commit changes",
+				"success": false,
+			})
+			return
+		}
+
+		// Clear authentication tokens
+		if userToken != "" {
+			userinfocache.Delete(userToken)
+		}
+
+		log.Info().Int("system_user_id", systemUserID).Msg("User profile and all associated data deleted successfully")
+
+		s.respondWithJSON(w, http.StatusOK, map[string]interface{}{
+			"code":    http.StatusOK,
+			"message": "profile and all associated data deleted successfully",
+			"success": true,
+		})
+	}
+}

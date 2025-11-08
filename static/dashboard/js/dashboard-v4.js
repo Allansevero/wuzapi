@@ -518,6 +518,32 @@
             }
         },
 
+        async deleteMyProfile() {
+            try {
+                if (confirm('Tem certeza que deseja excluir sua conta? Esta ação é irreversível e removerá permanentemente todos os seus dados e instâncias.')) {
+                    const response = await API.request('/my/profile', {
+                        method: 'DELETE'
+                    });
+
+                    if (response.success) {
+                        alert('Sua conta e todos os dados associados foram excluídos com sucesso. Você será redirecionado para a página de login.');
+                        
+                        // Limpar tokens e redirecionar
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('auth_token');
+                        
+                        window.location.href = '/login/';
+                    } else {
+                        throw new Error(response.error || 'Erro ao excluir conta');
+                    }
+                }
+            } catch (error) {
+                console.error('Error deleting profile:', error);
+                alert('Erro ao excluir conta: ' + (error.message || 'Erro desconhecido'));
+            }
+        },
+
         async addInstance() {
             const name = document.getElementById('instanceNameInput').value.trim();
             if (!name) {
@@ -605,6 +631,23 @@
             // Orange Alert
             document.getElementById('closeOrangeAlertBtn')?.addEventListener('click', () => {
                 document.getElementById('orangeAlert')?.classList.add('hidden');
+            });
+            
+            // Delete Account Modal
+            document.getElementById('deleteAccountBtn')?.addEventListener('click', () => {
+                Modals.open('deleteAccountModal');
+            });
+            
+            document.getElementById('cancelDeleteAccountBtn')?.addEventListener('click', () => {
+                Modals.close('deleteAccountModal');
+            });
+            
+            document.getElementById('confirmDeleteAccountBtn')?.addEventListener('click', () => {
+                Handlers.deleteMyProfile();
+            });
+            
+            document.getElementById('deleteAccountModal')?.addEventListener('click', (e) => {
+                if (e.target.id === 'deleteAccountModal') Modals.close('deleteAccountModal');
             });
         }
     };
