@@ -1,392 +1,100 @@
 <!DOCTYPE html>
-<html lang="en"> <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WUZAPI - REST API for WhatsApp</title>
-    <link rel="icon" href="/images/favicon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    <header>
-        <div class="header-container">
-            <div class="logo">
-                <img src="/images/favicon.png" alt="WUZAPI Logo">
-                <h1>WUZAPI</h1>
-            </div>
-
-            <button class="menu-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            
-            <nav>
-                <ul id="main-menu">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#api">API</a></li>
-                    <li><a href="#demo">Demo</a></li>
-                    <li><a href="#usage">Documentation</a></li>
-                    <li><a href="#donate">Support Us</a></li>
-                    <li><a href="/dashboard" class="btn">Dashboard</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h2 class="xfade-in">REST API for WhatsApp</h2>
-                <p class="xfade-in">WUZAPI is an implementation of the whatsmeow library as a simple RESTful API service, with support for multiple devices and concurrent sessions.</p>
-                <div class="btn-group xfade-in">
-                    <a href="/dashboard" class="btn"><i class="fas fa-tachometer-alt"></i> Access Dashboard</a>
-                    <a href="/api" class="btn"><i class="fas fa-code"></i> API Documentation</a>
-                    <a href="https://github.com/asternic/wuzapi" class="btn outline"><i class="fab fa-github"></i> GitHub</a>
-                </div>
-            </div>
-        </div>
-        <div class="scroll-down">
-            <span>Learn more</span>
-            <i class="fas fa-chevron-down"></i>
-        </div>
-    </section>
-
-    <section id="features" class="section features">
-        <div class="container">
-            <div class="section-title">
-                <h2>Main Features</h2>
-                <p>WUZAPI offers a complete API to interact with WhatsApp efficiently without using heavy resources like Puppeteer or Android emulators.</p>
-            </div>
-            <div class="features-grid">
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <h3>High Performance</h3>
-                    <p>Direct communication with WhatsApp servers via websocket, resulting in lower memory and CPU usage.</p>
-                </div>
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Multiple Sessions</h3>
-                    <p>Support for multiple devices and users simultaneously on the same instance.</p>
-                </div>
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">
-                        <i class="fas fa-comment-dots"></i>
-                    </div>
-                    <h3>Rich Messages</h3>
-                    <p>Send text, images, audio, documents, videos, stickers, location, and contacts.</p>
-                </div>
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <h3>Webhooks</h3>
-                    <p>Configure webhooks to receive real-time notifications of events and messages.</p>
-                </div>
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <h3>User Verification</h3>
-                    <p>Check if phone numbers have WhatsApp and get profile information.</p>
-                </div>
-                <div class="feature-card fade-in">
-                    <div class="feature-icon">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <h3>Simple Authentication</h3>
-                    <p>Token system for easy and secure user authentication.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="api" class="section api-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>API Endpoints</h2>
-                <p>WUZAPI offers several endpoints to interact with WhatsApp, organized into functional categories.</p>
-            </div>
-            <div class="api-endpoints">
-                <div class="endpoint-card slide-in-left">
-                    <h3><i class="fas fa-key"></i> Session</h3>
-                    <p>Manage WhatsApp sessions with ease.</p>
-                    <ul>
-                        <li>Connect to WhatsApp</li>
-                        <li>Disconnect, Logout</li>
-                        <li>Check connection status</li>
-                        <li>Get QR Code for scanning</li>
-                        <li>Pair by Phone Number</li>
-                        <li>Proxy configuration</li>
-                    </ul>
-                </div>
-                <div class="endpoint-card slide-in-right">
-                    <h3><i class="fas fa-comment"></i> Chat</h3>
-                    <p>Interact with chats and messages.</p>
-                    <ul>
-                        <li>Mark messages as read</li>
-                        <li>Delete messages</li>
-                        <li>Send reactions to messages</li>
-                        <li>Set presence (typing/recording)</li>
-                        <li>Download images</li>
-                        <li>Download videos</li>
-                        <li>Download documents</li>
-                    </ul>
-                </div>
-                <div class="endpoint-card slide-in-left">
-                    <h3><i class="fas fa-paper-plane"></i> Messages</h3>
-                    <p>Send different types of messages.</p>
-                    <ul>
-                        <li>Text, images, audio</li>
-                        <li>Documents, videos, stickers</li>
-                        <li>Location, contacts</li>
-                        <li>Templates with buttons</li>
-                    </ul>
-                </div>
-                <div class="endpoint-card slide-in-right">
-                    <h3><i class="fas fa-user"></i> Users</h3>
-                    <p>Get information about users.</p>
-                    <ul>
-                        <li>Check if numbers have WhatsApp</li>
-                        <li>Get profile information</li>
-                        <li>Get avatar/profile picture</li>
-                        <li>List contacts</li>
-                        <li>Set global presence</li>
-                    </ul>
-                </div>
-                <div class="endpoint-card slide-in-left">
-                    <h3><i class="fas fa-users"></i> Groups</h3>
-                    <p>Manage WhatsApp groups.</p>
-                    <ul>
-                        <li>List subscribed groups</li>
-                        <li>Get group information</li>
-                        <li>Get invite link</li>
-                        <li>Change group name</li>
-                        <li>Change group picture</li>
-                    </ul>
-                </div>
-                <div class="endpoint-card slide-in-right">
-                    <h3><i class="fas fa-bell"></i> Webhooks</h3>
-                    <p>Configure notifications for events.</p>
-                    <ul>
-                        <li>Set webhook URL</li>
-                        <li>Subscribe to specific events</li>
-                        <li>Update configuration</li>
-                        <li>Remove webhook</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="btn-group" style="margin-top: 2rem;">
-                <a href="/api" class="btn fade-in"><i class="fas fa-book"></i> Explore Full Documentation</a>
-            </div>
-        </div>
-    </section>
-
-    <section id="demo" class="section demo-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Interactive Demo</h2>
-                <p>See how easy it is to use the WUZAPI API to interact with WhatsApp.</p>
-            </div>
-            <div class="demo-container">
-                <div class="phone-mockup zoom-in">
-                    <div class="phone-screen">
-                        <div class="chat-header">
-                            <div class="chat-avatar">W</div>
-                            <div class="chat-info">
-                                <h4>WUZAPI Assistant</h4>
-                                <small>Online</small>
-                            </div>
-                        </div>
-                        <div class="chat-body">
-                            <!-- Chat messages will be added here by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-                <div class="demo-controls fade-in">
-                    <button class="demo-btn" data-scenario="message">Send Message</button>
-                    <button class="demo-btn" data-scenario="media">Send Media</button>
-                    <button class="demo-btn" data-scenario="webhook">Configure Webhook</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="warning-section container fade-in">
-        <h3><i class="fas fa-exclamation-triangle"></i> Important Warning</h3>
-        <p><strong>Using this software in violation of WhatsApp's Terms of Service may result in your number being banned</strong>. Be very careful, do not use it for SPAM or anything similar. Use at your own risk. If you need to develop something with commercial interest, contact a global WhatsApp solution provider and sign up for the WhatsApp Business API service.</p>
-    </div>
-
-    <section id="usage" class="section usage-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>How to Use</h2>
-                <p>Instructions to start using WUZAPI quickly.</p>
-            </div>
-            
-            <div class="installation-steps">
-                <div class="step fade-in">
-                    <h3><i class="fas fa-list-ol"></i> Prerequisites</h3>
-                    <p>To run WUZAPI, you need:</p>
-                    <ul style="padding-left: 2em; margin-top:1em;">
-                        <li>Go (Go Programming Language)</li>
-                        <li>Docker (optional, for containerization)</li>
-                        <li>Postgres (optional, can work standalone using SQLite)</li>
-                    </ul>
-                </div>
-                
-                <div class="step fade-in">
-                    <h3><i class="fas fa-terminal"></i> Compilation</h3>
-                    <p>Compile the project with the following command:</p>
-                    <div class="code-block" data-language="bash">
-                        <pre>go build .</pre>
-                    </div>
-                </div>
- 
-                <div class="step fade-in">
-                    <h3><i class="fas fa-cog"></i> Configuration</h3>
-                    <p>WuzAPI uses a .env file for configuration. Here are the required settings:</p>
-                    <h4>For PostgresSQL</h4>
-                    <div class="code-block" data-language="bash">
-<pre>WUZAPI_ADMIN_TOKEN=your_admin_token_here
-USER=wuzapi
-PASSWORD=wuzapi
-NAME=wuzapi
-HOST=localhost
-PORT=5432
-America/New_York</pre>
-                    </div>
-                    <h4>For SQLite</h4>
-                    <div class="code-block" data-language="bash">
-<pre>WUZAPI_ADMIN_TOKEN=your_admin_token_here
-TZ=America/New_York</pre>
-                  </div>
-                </div>
-                
-                <div class="step fade-in">
-                    <h3><i class="fas fa-play"></i> Execution</h3>
-                    <p>By default, the service will start on port 8080. You can change the behavior with the following parameters:</p>
-                    <ul style="padding-left: 2em; margin-top:1em;">
-                        <li><code>-address</code>: defines the IP address to bind the server (default 0.0.0.0)</li>
-                        <li><code>-port</code>: defines the port number (default 8080)</li>
-                        <li><code>-logtype</code>: format for logs, console (default) or json</li>
-                        <li><code>-wadebug</code>: enables whatsmeow debug, INFO or DEBUG levels are supported</li>
-                        <li><code>-sslcertificate</code>: SSL Certificate File</li>
-                        <li><code>-sslprivatekey</code>: SSL Private Key File</li>
-                        <li><code>-skipmedia</code>: Do not automatically download media from received messages</li>
-                        <li><code>-osname</code>: Connection OSName in Whatsapp (default "Mac OS 10")</li>
-                        <li><code>-admintoken</code>: Security Token to authorize admin actions (list/create/remove users)</li>
-                    </ul>
-                    <div style="margin-top:1em;">Example:</div>
-                    <div class="code-block" data-language="bash">
-                        <pre>./wuzapi -logtype json</pre>
-                    </div>
-                </div>
-                
-                <div class="step fade-in">
-                    <h3><i class="fas fa-user-plus"></i> Creating Users</h3>
-                    <p>To open sessions, you first need to create a user and define an authentication token for it. You can do this login into the <a href='/dashboard'>Dashboard</a>, or using the API directly:</p>
-                    <div class="code-block" data-language="bash">
-<pre>curl -X POST http://localhost:8080/admin/users \
--H "Authorization: $WUZAPI_ADMIN_TOKEN" \
--H "Content-Type: application/json" \
--d '{"name": "John", "token": "Z1234ABCCXD"}'</pre>
-                    </div>
-                    <p>Once users are created, you can communicate with the API by passing the <strong>Token</strong> header as a simple authentication method. You can have multiple users (different numbers) on the same server. For every user you will need to Connect to whatsapp and then either scan a QR Code or Pair via phone number.</p>
-                </div>
-                
-                <div class="step fade-in">
-                    <h3><i class="fas fa-globe"></i> Web Resources</h3>
-                    <p>The daemon also serves some static web files, useful for development/testing that you can load with your browser:</p>
-                    <ul style="padding-left: 2em; margin-top:1em;">
-                        <li>A Swagger API reference at <a href="/api">/api</a></li>
-                        <li>An example web page to connect and scan QR codes at <a href="/login">/login</a> (where you will need to pass ?token=1234ABCD)</li>
-                        <li>A management dashboard at <a href="/dashboard">/dashboard</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="donate" class="section donation-section">
-        <div class="container">
-            <div class="donation-container fade-in">
-                <div class="donation-header">
-                    <h2>Support the Project</h2>
-                    <p>If you like WUZAPI and want to help keep the project active and in development, consider making a donation. Your support is very important!</p>
-                </div>
-                <div class="donation-options">
-                    <div class="donation-qrcode zoom-in">
-                        <h3>Scan to Donate</h3>
-                        <img src="/images/qr_donate.png" alt="QR Code for Donation">
-                        <p>Scan the QR code above with your banking app or digital wallet.</p>
-                    </div>
-                    <div class="donation-paypal zoom-in">
-                        <div class="coffee-cup">
-                            <i class="fas fa-mug-hot"></i>
-                            <div class="coffee-steam"></div>
-                        </div>
-                        <h3>Buy Me a Coffee</h3>
-                        <p>Or make a donation via PayPal:</p>
-                        <a href="https://www.paypal.com/donate/?hosted_button_id=ZV46M9NKE9M8L" target="_blank" class="donation-link">
-                            <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" alt="Donate with PayPal">
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <div class="footer-container">
-                <div class="footer-brand">
-                    <img src="/images/favicon.png" alt="WUZAPI Logo">
-                    <p>WUZAPI is a REST API for WhatsApp, implementing the whatsmeow library for direct communication with WhatsApp servers.</p>
-                    <div class="social-links">
-                        <a href="https://github.com/asternic/wuzapi" target="_blank" aria-label="GitHub Repository"><i class="fab fa-github"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#api">API</a></li>
-                        <li><a href="#demo">Demo</a></li>
-                        <li><a href="#usage">Documentation</a></li>
-                        <li><a href="#donate">Support Us</a></li>
-                        <li><a href="/dashboard">Dashboard</a></li>
-                        <li><a href="/api">API Documentation</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="https://github.com/asternic/wuzapi/issues" target="_blank">Report Issues</a></li>
-                        <li><a href="https://github.com/asternic/wuzapi" target="_blank">Contribute</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="copyright">
-                <p>Copyright © 2025 Nicolás Gudiño and contributors</p>
-                <p>License <a href="https://choosealicense.com/licenses/mit/" target="_blank">MIT</a></p>
-                <p>This code is not affiliated with, authorized, maintained, sponsored, or endorsed by WhatsApp or any of its affiliates or subsidiaries.</p>
-            </div>
-        </div>
-    </footer>
-
-    <div class="theme-toggle" aria-label="Toggle light/dark mode">
-        <i class="fas fa-moon"></i>
-    </div>
-
-    <script src="/js/main.js"></script>
-</body>
+<html lang="pt-BR">
+  <head>
+    <title>Revizap – Analise conversas do WhatsApp e aumente suas vendas</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="generator" content="GrapesJS Studio">
+  <meta name="description" content="O Revizap analisa automaticamente as conversas do WhatsApp da sua equipe e mostra onde os vendedores estão perdendo vendas. Identifique falhas, oportunidades e aumente sua conversão."/>
+  <meta name="keywords" content="Whatsapp vendas, análise de atendimento, métricas comerciais, melhorar vendas whatsapp, treinamento de vendedores, CRM whatsapp, atendimento whatsapp, follow-up, ferramenta de vendas"/>
+  <meta property="og:title" content="Revizap – Analise conversas do WhatsApp e aumente suas vendas"/>
+  <meta property="og:description" content="Ferramenta que mostra onde seu time está perdendo clientes, aponta falhas e aumenta sua taxa de conversão."/>
+  <meta property="og:image" content="https://seudominio.com/imagens/capa.png"/>
+  <!-- SEO Meta Tags -->
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://seudominio.com"/>
+<!-- Styles & Scripts -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="./style.css">
+  </head>
+  <body class="min-h-screen flex flex-col"><!-- HEADER --><header class="w-full py-5 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto"><!-- Logo Placeholder --><div class="flex-shrink-0"><img src="https://placehold.co/50x50/4CAF50/ffffff?text=Logo" alt="Revizap Logo" class="h-10 w-10 md:h-12 md:w-12 rounded-full"/></div><!-- Navigation - Desktop --><nav class="hidden md:flex space-x-8 lg:space-x-12 font-medium text-gray-600"><a href="#" class="text-gray-900 border-b-2 border-green-500 pb-1">INICIO</a><a href="#beneficios" class="hover:text-gray-900 transition-colors">BENEFÍCIOS</a><a href="#para-quem" class="hover:text-gray-900 transition-colors">PARA QUEM</a><a href="#" class="hover:text-gray-900 transition-colors">BLOG</a></nav><!-- CTA Button Header --><div><a href="https://app.revizap.com.br/login/" id="ix48s" class="bg-black text-white px-6 py-2.5 rounded-md font-medium hover:bg-gray-800 transition-colors">
+                Entrar
+            </a></div></header><main class="flex-grow"><!-- HERO SECTION --><section class="flex flex-col items-center px-4 mt-16 md:mt-24"><!-- Headline --><h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-gray-900 max-w-4xl leading-tight">
+                Transforme as conversas do WhatsApp da sua equipe em vendas, métricas e <span class="underline-curve">lucro.</span></h1><!-- Subheadline --><p class="text-lg text-gray-600 text-center max-w-2xl mt-8 leading-relaxed">
+                O <strong class="text-gray-800">Revizap</strong> analisa as conversas entre vendedores e clientes, identifica oportunidades perdidas e mostra exatamente onde cada vendedor pode melhorar para fechar mais negócios.
+            </p><!-- CTA Button Main --><div class="mt-10"><a href="https://app.revizap.com.br/login/" id="ia249" class="bg-[#4CAF50] text-white text-lg px-8 py-4 rounded-md font-semibold hover:bg-green-600 transition-colors shadow-sm">
+                    Receber análises grátis
+                </a></div><!-- Hero Image Container --><div class="w-full max-w-5xl mt-16 md:mt-24 relative"><!-- Background Decoration (Simulando o fundo verde da imagem) --></div></section><!-- PROBLEM SECTION --><div data-type-role="flex-row" class="gjs-plg-flex-row" id="i8n0ko"><div data-type-role="flex-column" class="gjs-plg-flex-column" id="i9lpk4"><img id="i9brzp" src="assets/tela__1_.svg" alt="Painel do Revizap mostrando análise de conversas do WhatsApp" loading="lazy"/></div></div><section class="w-full bg-white py-20 md:py-32"><div class="max-w-5xl mx-auto px-6 md:px-8" id="ixa7c"><h2 class="text-2xl md:text-4xl font-bold text-center text-gray-600 mb-16 md:mb-24 leading-tight max-w-3xl mx-auto">
+                    Você já percebeu que a maioria das vendas se perde no atendimento, e não no produto?
+                </h2><div class="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-24"><!-- Left Column: Checklist --><ul class="space-y-5 flex-1 w-full max-w-md"><li class="flex items-start text-lg text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="w-6 h-6 text-red-600 mr-3 mt-1 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                             Vendedor deixa de responder
+                        </li><li class="flex items-start text-lg text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="w-6 h-6 text-red-600 mr-3 mt-1 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                             Esquece de fazer follow-up
+                        </li><li class="flex items-start text-lg text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="w-6 h-6 text-red-600 mr-3 mt-1 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                             Não sabe lidar com objeções
+                        </li><li class="flex items-start text-lg text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="w-6 h-6 text-red-600 mr-3 mt-1 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                             Demora para retomar contato
+                        </li><li class="flex items-start text-lg text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="w-6 h-6 text-red-600 mr-3 mt-1 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                             Passa preço sem argumentação
+                        </li><li class="flex items-start text-lg text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="w-6 h-6 text-red-600 mr-3 mt-1 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                             Ou simplesmente “não sabe vender”
+                        </li></ul><!-- Right Column: Image --><div class="flex-1 flex justify-center w-full max-w-xs md:max-w-none"><img src="assets/dinheiro_voando_1.png" alt="Gráfico de aumento de vendas com análise de atendimento via WhatsApp" id="i03kji" loading="lazy" class="w-full h-auto object-contain"/></div></div><p class="text-center text-gray-500 font-bold text-sm md:text-base tracking-widest mt-20 md:mt-28 uppercase">
+                    E O DONO DA EMPRESA SÓ DESCOBRE QUANDO É TARDE DEMAIS.
+                </p></div></section><!-- SOLUTION SECTION --><section id="beneficios" class="w-full bg-[#F0F2F1] py-20 md:py-32"><div class="max-w-5xl mx-auto px-6 md:px-8"><div class="flex flex-col md:flex-row items-center justify-between gap-12 md:gap-24"><!-- Left Column: Text Content --><div class="flex-1 w-full max-w-md md:max-w-none text-center md:text-left"><h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8 md:mb-10">
+                            Com o Revizap, isso muda!
+                        </h2><p class="text-lg text-gray-600 mb-10 leading-relaxed">
+                            Nosso sistema lê automaticamente as conversas do WhatsApp, detecta erros de atendimento e transforma tudo em métricas reais para você aumentar a conversão da sua equipe.
+                        </p><ul class="space-y-4 text-lg text-gray-600"><li class="flex items-start"><span class="text-green-600 font-bold text-xl mr-3 leading-none">•</span> Analisa cada conversa do WhatsApp
+                            </li><li class="flex items-start"><span class="text-green-600 font-bold text-xl mr-3 leading-none">•</span> Mede o desempenho de cada vendedor
+                            </li><li class="flex items-start"><span class="text-green-600 font-bold text-xl mr-3 leading-none">•</span> Mostra onde ele perdeu a venda
+                            </li><li class="flex items-start"><span class="text-green-600 font-bold text-xl mr-3 leading-none">•</span> Identifica falta de follow-up
+                            </li><li class="flex items-start"><span class="text-green-600 font-bold text-xl mr-3 leading-none">•</span> Captura objeções ignoradas
+                            </li><li class="flex items-start"><span class="text-green-600 font-bold text-xl mr-3 leading-none">•</span> Detecta contatos abandonados
+                            </li><li class="flex items-start"><span class="text-green-600 font-bold text-xl mr-3 leading-none">•</span> Envia relatórios automáticos
+                            </li></ul><p class="text-sm text-gray-500 mt-10 italic">
+                            Sem achismos. Sem opinião. Sem suposições.
+                        </p></div><!-- Right Column: Report Image --><div class="flex-1 flex justify-center w-full max-w-xs md:max-w-none"><img src="assets/group_1.svg" alt="Análise automática de mensagens e follow-up no Revizap" width="500" height="700" loading="lazy" id="ic61pw" class="w-full h-auto object-contain rounded-lg shadow-xl"/></div></div></div></section><!-- AUDIENCE SECTION --><section id="para-quem" class="w-full bg-white py-20 md:py-32"><div class="max-w-4xl mx-auto px-6 text-center"><h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
+                    O Revizap é para todos que vendem ou agendam por WhatsApp e querem acompanhar e melhorar as conversões.
+                </h2><p class="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+                    Conecte uma única vez e todos os dias as 18 horas você recebe um resumo do dia e as 8 horas da manhã um plano de ação imediato para aplicar por número conectado.
+                </p><!-- CTA --><div class="mb-16"><a href="https://app.revizap.com.br/login/" id="if3wkp" class="bg-[#4CAF50] text-white text-lg px-8 py-4 rounded-md font-semibold hover:bg-green-600 transition-colors shadow-sm inline-block">
+                        Receber análises grátis
+                    </a></div><!-- Benefits Pills/List --><div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-4 text-gray-700 font-medium text-lg"><div class="flex items-center"><!-- Green Check Icon --><svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-[#4CAF50] mr-2 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"></path></svg>
+                        Aumento da conversão de vendas
+                    </div><div class="flex items-center"><svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-[#4CAF50] mr-2 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"></path></svg>
+                        Clientes mais satisfeitos
+                    </div><div class="flex items-center"><svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-[#4CAF50] mr-2 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"></path></svg>
+                        Fim das desculpas e achismos
+                    </div><div class="flex items-center"><svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-[#4CAF50] mr-2 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"></path></svg>
+                        Treinamento baseado em dado
+                    </div><div class="flex items-center"><svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-[#4CAF50] mr-2 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"></path></svg>
+                        Gestão comercial muito mais rápida
+                    </div></div></div></section><!-- FAQ SECTION --><section class="w-full bg-[#F0F2F1] py-20 md:py-32"><div class="max-w-3xl mx-auto px-6"><h2 class="text-2xl md:text-4xl font-bold text-center text-gray-900 mb-16">
+                    Perguntas Frequentes
+                </h2><div class="space-y-4"><!-- FAQ Item 1 --><details class="group bg-white rounded-lg p-6 [&amp;_summary::-webkit-details-marker]:hidden"><summary class="flex cursor-pointer items-center justify-between text-lg font-medium text-gray-900">
+                            É seguro?
+                            <span class="ml-4 flex-shrink-0 transition duration-300 group-open:-rotate-180"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6 text-green-600"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span></summary><p class="mt-4 leading-relaxed text-gray-700">
+                            Sim. Dados protegidos e criptografados.
+                        </p></details><!-- FAQ Item 2 --><details class="group bg-white rounded-lg p-6 [&amp;_summary::-webkit-details-marker]:hidden"><summary class="flex cursor-pointer items-center justify-between text-lg font-medium text-gray-900">
+                            Funciona com WhatsApp Business?
+                            <span class="ml-4 flex-shrink-0 transition duration-300 group-open:-rotate-180"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6 text-green-600"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span></summary><p class="mt-4 leading-relaxed text-gray-700">
+                            Sim.
+                        </p></details><!-- FAQ Item 3 --><details class="group bg-white rounded-lg p-6 [&amp;_summary::-webkit-details-marker]:hidden" id="ixt6cu"><summary class="flex cursor-pointer items-center justify-between text-lg font-medium text-gray-900">
+                            Precisa instalar algo?
+                            <span class="ml-4 flex-shrink-0 transition duration-300 group-open:-rotate-180"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6 text-green-600"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span></summary><p class="mt-4 leading-relaxed text-gray-700">
+                            Não. Tudo via painel online.
+                        </p></details><!-- FAQ Item 4 --><details class="group bg-white rounded-lg p-6 [&amp;_summary::-webkit-details-marker]:hidden"><summary class="flex cursor-pointer items-center justify-between text-lg font-medium text-gray-900">
+                            Precisa treinar o vendedor?
+                            <span class="ml-4 flex-shrink-0 transition duration-300 group-open:-rotate-180"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6 text-green-600"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></span></summary><p class="mt-4 leading-relaxed text-gray-700">
+                            Não. O Revizap faz a análise sozinho.
+                        </p></details></div></div></section></main><!-- FOOTER --><footer class="w-full bg-white py-8 px-6 text-center border-t border-gray-200"><div class="max-w-7xl mx-auto"><p class="text-gray-600 mb-4">
+                Feito com coração ❤️
+            </p><div class="flex justify-center space-x-6 text-sm text-gray-500"><!-- Botão que abre o modal de termos --><button type="button" class="hover:text-gray-900 transition-colors focus:outline-none" id="ii55ba">
+                    Termos e Políticas de Privacidade
+                </button></div></div></footer><!-- MODAL: TERMOS DE USO & POLÍTICA DE PRIVACIDADE --><dialog id="terms-modal" class="p-0 rounded-xl w-11/12 max-w-4xl backdrop:bg-black/50 open:animate-fade-in"><div class="bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh]"><!-- Modal Header --><div class="sticky top-0 bg-white z-10 px-6 py-4 border-b flex justify-between items-center"><h3 class="text-xl font-bold text-gray-900">Política de Privacidade e Termos de Uso</h3><button type="button" class="text-gray-400 hover:text-gray-600 transition-colors p-2"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button></div><!-- Modal Body (Scrollable) --><div class="p-6 md:p-8 overflow-y-auto text-gray-700 space-y-6 text-sm md:text-base leading-relaxed"><!-- Cabeçalho do documento --><div class="mb-8 p-4 bg-gray-50 rounded-lg text-sm"><p class="font-semibold text-gray-900">Revizap Tecnologias LTDA</p><p>CNPJ: 33.841.732/0001-63</p><p>Endereço: R. Capitão Pedroso, 210 — Restinga, Porto Alegre — RS</p><p>Site: www.revizap.com.br</p><p>E-mail: contato@revizap.com.br</p><p>Responsável pelo Tratamento de Dados (DPO): Allan Miranda Severo Rodrigues – grupocrivo@gmail.com</p></div><section><h4 class="text-lg font-bold text-gray-900 mb-3">1. INTRODUÇÃO</h4><p>A presente Política de Privacidade e Termos de Uso regula a utilização dos serviços e plataformas fornecidas pela Revizap Tecnologias LTDA, inscrita sob o CNPJ nº 33.841.732/0001-63, doravante denominada apenas Revizap.</p><p class="mt-2">Ao criar conta, acessar, fazer upload de informações, integrar WhatsApp ou utilizar qualquer funcionalidade da Revizap, o usuário declara automaticamente estar ciente, de acordo e aceitar integralmente os termos e regras descritas neste documento.</p><p class="mt-2">Caso o usuário não concorde com qualquer cláusula aqui descrita, deverá interromper o uso da plataforma imediatamente.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">2. SOBRE A REVIZAP</h4><p>A Revizap é uma plataforma SaaS destinada a análise, processamento e classificação de conversas provenientes do WhatsApp e outros canais de atendimento, gerando relatórios, métricas e indicadores para vendedores, gestores e equipes comerciais.</p><p class="mt-2">O usuário é integralmente responsável pelo conteúdo das conversas que importar, sincronizar ou cadastrar na plataforma.</p><p class="mt-2">A Revizap não realiza vendas, negociações ou contato com clientes finais — apenas oferece tecnologia para análise, organização, visualização e desempenho comercial.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">3. COLETA DE DADOS</h4><p>A Revizap coleta dados com o objetivo exclusivo de fornecer seus serviços, melhorar a experiência do usuário, manter segurança e cumprir obrigações legais.</p><p class="mt-2 mb-2">Os tipos de dados coletados podem incluir:</p><ul class="list-disc list-inside space-y-1 ml-2"><li>Informações de cadastro: nome, e-mail, CPF/CNPJ, telefone, empresa</li><li>Dados de acesso: browser, IP, sistema operacional, data e horário</li><li>Conteúdos importados voluntariamente pelo usuário, como conversas de WhatsApp</li><li>Dados de pagamento e transações processados via Asaas</li><li>Informações analíticas coletadas por Google Analytics</li><li>Dados de tráfego e entregabilidade via Brevo</li><li>Interações automatizadas processadas por Gemini</li></ul><p class="mt-3">A Revizap não comercializa, aluga, doa ou disponibiliza dados pessoais a terceiros não relacionados à prestação do serviço.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">4. BASE LEGAL DE TRATAMENTO</h4><p class="mb-2">O tratamento ocorre com base em:</p><ul class="list-disc list-inside space-y-1 ml-2"><li>Consentimento do usuário</li><li>Execução de contrato e prestação do serviço</li><li>Legítimo interesse, quando aplicável</li><li>Cumprimento de obrigação legal</li></ul><p class="mt-3">O usuário declara ser responsável por garantir que possui autorização para utilizar, armazenar e compartilhar conversas e conteúdos importados para a plataforma.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">5. TRATAMENTO DE DADOS SENSÍVEIS E DE MENORES</h4><p>A Revizap não realiza tratamento de dados de menores de 18 anos.</p><p class="mt-2">Caso o sistema identifique registros ou importações envolvendo menores, tais dados poderão ser apagados e o usuário advertido ou suspenso.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">6. ARMAZENAMENTO DE DADOS</h4><p>Os dados são armazenados em servidores seguros utilizando PostgreSQL, em infraestrutura protegida e com criptografia.</p><p class="mt-2">Ferramentas como Gemini, Google Analytics, Asaas e Brevo são utilizadas exclusivamente para execução do serviço, métricas, pagamentos e comunicação autorizada.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">7. PRAZO DE GUARDA DOS DADOS</h4><p class="mb-2">O usuário está ciente de que:</p><ul class="list-disc list-inside space-y-1 ml-2"><li>Dados poderão ser armazenados por até 30 dias</li><li>Após este período, poderão ser removidos ou anonimizado automaticamente</li><li>Backups podem existir apenas para segurança e proteção jurídica</li></ul><p class="mt-3">O usuário é responsável por qualquer exportação ou backup próprio antes do prazo.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">8. SEGURANÇA</h4><p class="mb-2">A Revizap aplica medidas técnicas e administrativas com o objetivo de manter segurança e integridade de dados, incluindo:</p><ul class="list-disc list-inside space-y-1 ml-2"><li>Criptografia</li><li>Controle de acesso</li><li>Senhas criptografadas</li><li>Logs de atividades</li><li>Monitoramento de uso</li><li>Proteção de banco de dados PostgreSQL</li></ul><p class="mt-3">Entretanto, por operar via internet, o usuário reconhece que nenhum sistema é 100% imune a riscos externos.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">9. COMPARTILHAMENTO DE DADOS</h4><p class="mb-2">A Revizap apenas compartilha dados com:</p><ul class="list-disc list-inside space-y-1 ml-2"><li>Asaas (processamento de pagamentos)</li><li>Brevo (envio de e-mails e comunicações)</li><li>Google Analytics (estatísticas e comportamento)</li><li>Gemini (recursos de inteligência artificial)</li></ul><p class="mt-3">Não há compartilhamento com terceiros para fins de marketing externo ou comercialização.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">10. DIREITOS DO TITULAR</h4><p class="mb-2">O usuário pode solicitar:</p><ul class="list-disc list-inside space-y-1 ml-2"><li>Acesso aos seus dados</li><li>Correção</li><li>Portabilidade</li><li>Revogação de consentimento</li><li>Exclusão definitiva</li></ul><p class="mt-3">Pedidos podem ser feitos pelo e-mail: <a href="mailto:contato@revizap.com.br" class="text-green-600 hover:underline">contato@revizap.com.br</a></p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">11. PLANOS, PAGAMENTOS E CANCELAMENTO</h4><p>A Revizap oferece plano mensal e plano gratuito com limitações.</p><p class="mt-2">O usuário pode cancelar a qualquer momento.</p><p class="mt-2">Assinaturas recorrentes serão cobradas automaticamente até que o usuário realize cancelamento via plataforma ou solicite suporte.</p><p class="mt-2">Não há reembolso de períodos já utilizados.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">12. SUPORTE</h4><p class="mb-2">O suporte é realizado através de:</p><ul class="list-disc list-inside space-y-1 ml-2"><li>E-mail: <a href="mailto:contato@revizap.com.br" class="text-green-600 hover:underline">contato@revizap.com.br</a></li><li>WhatsApp disponibilizado ao cliente após cadastro</li></ul></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">13. RESPONSABILIDADE DO USUÁRIO</h4><ul class="list-disc list-inside space-y-2 ml-2"><li>O usuário é responsável por toda informação importada</li><li>Deve manter sigilo de login e senha</li><li>Não pode usar a plataforma para fins ilegais</li><li>Não pode enviar spam, fraudes ou dados obtidos sem autorização</li></ul><p class="mt-3">Uso indevido pode resultar em suspensão imediata sem reembolso.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">14. MODIFICAÇÕES</h4><p>A Revizap pode alterar esta política a qualquer momento.</p><p class="mt-2">A versão vigente será sempre publicada em www.revizap.com.br.</p><p class="mt-2">Continuidade do uso significa concordância com os novos termos.</p></section><section><h4 class="text-lg font-bold text-gray-900 mb-3">15. DISPOSIÇÕES GERAIS</h4><p>Este contrato segue legislação brasileira, incluindo a LGPD.</p><p class="mt-2">Eventuais disputas serão tratadas no foro da comarca de Porto Alegre – RS.</p></section></div><!-- Modal Footer (Sticky Bottom) --><div class="sticky bottom-0 bg-white border-t p-6 flex justify-center"><button type="button" class="bg-[#4CAF50] text-white text-lg px-8 py-3 rounded-md font-semibold hover:bg-green-600 transition-colors w-full md:w-auto text-center">
+                    Começar grátis
+                </button></div></div></dialog></body>
 </html>
