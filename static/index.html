@@ -1,160 +1,116 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <title>Revizap – Analise conversas do WhatsApp e aumente suas vendas</title>
-  <meta charset="UTF-8"/>
+<head>
+  <meta charset="UTF-8">
+  <title>Revizap – Analise conversas do WhatsApp e aumente suas vendas</title>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="index, follow"/>
-  <meta name="generator" content="GrapesJS Studio">
   <meta name="description" content="O Revizap analisa automaticamente as conversas do WhatsApp da sua equipe e mostra onde os vendedores estão perdendo vendas. Identifique falhas, oportunidades e aumente sua conversão."/>
-  <meta name="keywords" content="Whatsapp vendas, análise de atendimento, métricas comerciais, melhorar vendas whatsapp, treinamento de vendedores, CRM whatsapp, atendimento whatsapp, follow-up, ferramenta de vendas"/>
+  <link rel="canonical" href="https://app.revizap.com.br/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
   <meta property="og:title" content="Revizap – Analise conversas do WhatsApp e aumente suas vendas"/>
   <meta property="og:description" content="Ferramenta que mostra onde seu time está perdendo clientes, aponta falhas e aumenta sua taxa de conversão."/>
-  <meta property="og:image" content="https://seudominio.com/imagens/capa.png"/>
-  <!-- SEO Meta Tags -->
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website"/>
-<meta property="og:url" content="https://seudominio.com"/>
-<!-- Styles & Scripts -->
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="./style.css">
+  <meta property="og:url" content="https://app.revizap.com.br"/>
+  <meta property="og:image" content="https://app.revizap.com.br/assets/capa.png"/>
+
+  <!-- Sitemap reference -->
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="https://app.revizap.com.br/sitemap.xml"/>
+
+  <!-- Font Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body, * {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+
+  <!-- ✅ SCHEMAS JSON-LD -->
   <!-- ORGANIZATION -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "Organization",
- "name": "Revizap",
- "url": "https://app.revizap.com.br",
- "logo": "https://app.revizap.com.br/assets/logo.svg",
- "description": "O Revizap analisa automaticamente conversas do WhatsApp da sua equipe e mostra onde os vendedores estão perdendo vendas.",
- "sameAs": [
-   "https://www.instagram.com/revizap",
-   "https://www.facebook.com/revizap",
-   "https://www.linkedin.com/company/revizap"
- ]  
-}
-</script>
-
-<!-- WEBSITE + SEARCH ACTION -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "WebSite",
- "name": "Revizap",
- "url": "https://app.revizap.com.br",
- "potentialAction": {
-   "@type": "SearchAction",
-   "target": "https://app.revizap.com.br/?q={search_term_string}",
-   "query-input": "required name=search_term_string"
- }
-}
-</script>
-
-<!-- PRODUCT -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org/",
- "@type": "Product",
- "name": "Revizap",
- "image": "https://app.revizap.com.br/assets/logo.svg",
- "description": "Plataforma que analisa conversas do WhatsApp e transforma mensagens em métricas e insights para treinar equipes e aumentar vendas.",
- "brand": {
-   "@type": "Brand",
-   "name": "Revizap"
- },
- "offers": {
-   "@type": "Offer",
-   "url": "https://app.revizap.com.br",
-   "priceCurrency": "BRL",
-   "availability": "https://schema.org/InStock"
- }
-}
-</script>
-
-<!-- SOFTWARE APPLICATION -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "SoftwareApplication",
- "name": "Revizap",
- "operatingSystem": "Web",
- "applicationCategory": "BusinessApplication",
- "description": "O Revizap analisa conversas do WhatsApp e revela onde sua equipe está perdendo vendas. Métricas, follow-up, objeções e análise de scripts.",
- "url": "https://app.revizap.com.br",
- "image": "https://app.revizap.com.br/assets/logo.svg",
- "creator": {
-   "@type": "Organization",
-   "name": "Revizap"
- },
- "offers": {
-   "@type": "Offer",
-   "url": "https://app.revizap.com.br",
-   "price": "0",
-   "priceCurrency": "BRL",
-   "availability": "https://schema.org/InStock"
- }
-}
-</script>
-
-<!-- FAQ PAGE (use se houver perguntas na página) -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "FAQPage",
- "mainEntity": [
+  <script type="application/ld+json">
   {
-   "@type": "Question",
-   "name": "O que é o Revizap?",
-   "acceptedAnswer": {
-    "@type": "Answer",
-    "text": "É uma plataforma que analisa conversas de vendedores no WhatsApp e transforma mensagens em métricas reais para melhorar conversão e atendimento."
-   }
-  },
-  {
-   "@type": "Question",
-   "name": "Funciona com WhatsApp comum?",
-   "acceptedAnswer": {
-    "@type": "Answer",
-    "text": "Sim. Basta exportar conversas ou integrar o número comercial. Funciona com WhatsApp e WhatsApp Business."
-   }
-  },
-  {
-   "@type": "Question",
-   "name": "O Revizap é compatível com LGPD?",
-   "acceptedAnswer": {
-    "@type": "Answer",
-    "text": "Sim. O processamento de dados é corporativo e autorizado pela empresa. Todas as informações são tratadas com segurança."
-   }
-  },
-  {
-   "@type": "Question",
-   "name": "Preciso treinar o vendedor para usar?",
-   "acceptedAnswer": {
-    "@type": "Answer",
-    "text": "Não. O Revizap analisa automaticamente as conversas e entrega relatórios prontos para o gestor."
-   }
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Revizap",
+    "url": "https://app.revizap.com.br",
+    "logo": "https://app.revizap.com.br/assets/logo.svg",
+    "description": "O Revizap analisa automaticamente conversas do WhatsApp e transforma mensagens em métricas comerciais reais para aumentar suas vendas.",
+    "sameAs": [
+      "https://www.instagram.com/revizap"
+    ]
   }
- ]
-}
-</script>
+  </script>
 
-<!-- BREADCRUMBS (ative apenas se a página tiver essas seções) -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "BreadcrumbList",
- "itemListElement": [
+  <!-- SOFTWARE APPLICATION -->
+  <script type="application/ld+json">
   {
-   "@type": "ListItem",
-   "position": 1,
-   "name": "Início",
-   "item": "https://app.revizap.com.br"
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Revizap",
+    "operatingSystem": "Web",
+    "applicationCategory": "BusinessApplication",
+    "description": "Plataforma que analisa conversas do WhatsApp e entrega métricas e relatórios para aumentar vendas e treinar equipes comerciais.",
+    "url": "https://app.revizap.com.br",
+    "image": "https://app.revizap.com.br/assets/logo.svg",
+    "creator": {
+      "@type": "Organization",
+      "name": "Revizap"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": "https://app.revizap.com.br",
+      "price": "0",
+      "priceCurrency": "BRL",
+      "availability": "https://schema.org/InStock"
+    }
   }
- ]
-}
-</script>
-  </head>
+  </script>
+
+  <!-- WEBSITE SEARCH ACTION -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Revizap",
+    "url": "https://app.revizap.com.br",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://app.revizap.com.br/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- FAQ SCHEMA -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Precisa instalar algo?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Não. O Revizap funciona direto pelo navegador." }
+      },
+      {
+        "@type": "Question",
+        "name": "Funciona com WhatsApp Business?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sim, compatível com WhatsApp e WhatsApp Business." }
+      },
+      {
+        "@type": "Question",
+        "name": "É seguro?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sim. Dados criptografados e uso seguro seguindo LGPD." }
+      }
+    ]
+  }
+  </script>
+</head>
+
   <body class="min-h-screen flex flex-col"><!-- HEADER --><header class="w-full py-5 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto" id="ibfmq"><!-- Logo Placeholder --><div class="flex-shrink-0"><img id="ir64df" src="assets/logo__1_.svg"/></div><!-- Navigation - Desktop --><nav class="hidden md:flex space-x-8 lg:space-x-12 font-medium text-gray-600"><a href="#" class="text-gray-900 border-b-2 border-green-500 pb-1">INICIO</a><a href="#beneficios" class="hover:text-gray-900 transition-colors">BENEFÍCIOS</a><a href="#para-quem" class="hover:text-gray-900 transition-colors">PARA QUEM</a><a href="#" class="hover:text-gray-900 transition-colors">BLOG</a></nav><!-- CTA Button Header --><div><a href="https://app.revizap.com.br/login/" id="ix48s" class="bg-black text-white px-6 py-2.5 rounded-md font-medium hover:bg-gray-800 transition-colors">
                 Entrar
             </a></div></header><main class="flex-grow" id="ia3fm"><!-- HERO SECTION --><section class="flex flex-col items-center px-4 mt-16 md:mt-24"><!-- Headline --><h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-gray-900 max-w-4xl leading-tight" id="ism4u">
