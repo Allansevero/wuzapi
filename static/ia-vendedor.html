@@ -230,7 +230,7 @@
 
     <script>
         // Configuração da API Gemini (substitua pela sua chave real)
-        const API_KEY = 'AIzaSyAp5XnSL3e79yNWEB827ZB8nk3tv7lEv3A';
+        const API_KEY = 'AIzaSyAyPtSJ4ZFBnphwbnXC5PtrzHr-UsUmlfE';
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
 
         const chatMessages = document.getElementById('chat-messages');
@@ -273,6 +273,14 @@
                 // Simulação - substitua com chamada real para API Gemini
                 // Descomente o código abaixo quando tiver a chave real
                 /*
+                // Criar contexto da conversa completa
+                let conversationContext = "Você é um vendedor experiente de uma padaria. Mantenha um tom amigável e profissional. ";
+                conversationContext += "Aqui está o histórico da conversa até agora:\n";
+                conversationHistory.forEach((msg, index) => {
+                    conversationContext += `${msg.sender === 'user' ? 'Cliente' : 'Você'}: ${msg.text}\n`;
+                });
+                conversationContext += `Agora o cliente diz: "${userMessage}". Responda como vendedor, oferecendo seus produtos de forma persuasiva.`;
+                
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
@@ -281,7 +289,7 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: `Você é um vendedor experiente de uma padaria. Um cliente entrou em contato e disse: "${userMessage}". Agora você deve responder como vendedor, oferecendo seus produtos (como bolos, doces, salgados, etc.) de forma persuasiva para converter em venda. Mantenha um tom amigável, profissional e foque em convencer o cliente a comprar. Se o cliente perguntar sobre preços, forneça valores realistas para os produtos.`
+                                text: conversationContext
                             }]
                         }]
                     })
@@ -291,19 +299,45 @@
                 const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar sua mensagem.';
                 */
 
-                // Simulação temporária melhorada para contexto de padaria
-                const responses = [
-                    'Temos bolos deliciosos a partir de R$ 45,00! Qual sabor você gostaria? Temos chocolate, cenoura, brigadeiro e muitos outros!',
-                    'Que ótimo! Temos bolos caseiros com recheio cremoso a partir de R$ 45,00. Qual data você precisa? Estamos com 15% de desconto para pedidos com 3 dias de antecedência!',
-                    'Excelente! Qual sabor você prefere? Temos bolo de chocolate trufado por R$ 60,00, bolo de cenoura com cobertura por R$ 50,00 e bolo de brigadeiro por R$ 55,00.',
-                    'Adoraria te ajudar! Temos bolos variados, de R$ 45,00 a R$ 70,00 dependendo do sabor e recheio. Para pedidos acima de 2 unidades, oferecemos 10% de desconto. Qual você prefere?',
-                    'Temos opções maravilhosas! Nossos bolos custam a partir de R$ 45,00 e são feitos com ingredientes selecionados. Qual ocasião é? Posso te recomendar o melhor sabor!',
-                    'Nossa padaria tem os melhores bolos da região! Pedidos com 24h de antecedência ganham uma decoração especial grátis. Temos sabores como chocolate belga, limão siciliano e nozes por R$ 55,00.'
-                ];
+                // Simulação temporária melhorada para contexto de padaria com continuidade
+                // Criar respostas baseadas no histórico da conversa
+                const lastUserMessage = userMessage.toLowerCase();
+                
+                // Determinar resposta baseada no conteúdo da mensagem do usuário
+                let aiResponse;
+                if (lastUserMessage.includes('bolo') || lastUserMessage.includes('preço') || lastUserMessage.includes('valor')) {
+                    const boloResponses = [
+                        'Temos bolos deliciosos a partir de R$ 45,00! Qual sabor você gostaria? Temos chocolate, cenoura, brigadeiro e muitos outros!',
+                        'Excelente escolha! Qual sabor você prefere? Temos bolo de chocolate trufado por R$ 60,00, bolo de cenoura com cobertura por R$ 50,00 e bolo de brigadeiro por R$ 55,00.',
+                        'Adoraria te ajudar com isso! Temos bolos variados, de R$ 45,00 a R$ 70,00 dependendo do sabor e recheio. Para pedidos acima de 2 unidades, oferecemos 10% de desconto. Qual você prefere?'
+                    ];
+                    aiResponse = boloResponses[Math.floor(Math.random() * boloResponses.length)];
+                } else if (lastUserMessage.includes('oi') || lastUserMessage.includes('olá') || lastUserMessage.includes('ola')) {
+                    const greetingResponses = [
+                        'Olá! Adoraria te ajudar. Temos bolos deliciosos a partir de R$ 45,00. Qual sabor você gostaria?',
+                        'Oi! Que bom que entrou em contato! Nossos bolos são artesanais e deliciosos. Quer saber sobre nossos sabores e preços?',
+                        'Olá! Sou Ana, sua atendente virtual. Estou aqui para te ajudar com nossos bolos incríveis. Posso te mostrar as opções disponíveis?'
+                    ];
+                    aiResponse = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
+                } else if (lastUserMessage.includes('obrigado') || lastUserMessage.includes('agradeço')) {
+                    const thanksResponses = [
+                        'Fico feliz em ajudar! Posso te mostrar mais detalhes sobre nossos bolos? Estou com uma promoção especial para pedidos hoje!',
+                        'Por nada! Gostaria de saber sobre nossos bolos especiais? Talvez tenha algo perfeito para sua ocasião!',
+                        'É um prazer ajudar! Se tiver mais alguma dúvida sobre nossos bolos, é só perguntar. Estou com condições especiais hoje!'
+                    ];
+                    aiResponse = thanksResponses[Math.floor(Math.random() * thanksResponses.length)];
+                } else {
+                    const generalResponses = [
+                        'Entendi! Temos bolos maravilhosos a partir de R$ 45,00. Posso te recomendar o sabor perfeito para sua ocasião?',
+                        'Perfeito! Nossos bolos são preparados com ingredientes selecionados. Posso te mostrar as opções de sabores e preços?',
+                        'Adoraria te ajudar com isso! Temos opções especiais que podem ser exatamente o que você está procurando. Quer saber mais?',
+                        'Temos exatamente o que você precisa! Nossos bolos são preparados com muito carinho. Posso te mostrar as opções disponíveis?'
+                    ];
+                    aiResponse = generalResponses[Math.floor(Math.random() * generalResponses.length)];
+                }
                 
                 // Simular tempo de resposta
                 await new Promise(resolve => setTimeout(resolve, 1500));
-                const aiResponse = responses[Math.floor(Math.random() * responses.length)];
 
                 typingIndicator.style.display = 'none';
                 return aiResponse;
