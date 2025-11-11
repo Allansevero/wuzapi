@@ -274,12 +274,12 @@
                 // Descomente o código abaixo quando tiver a chave real
                 /*
                 // Criar contexto da conversa completa
-                let conversationContext = "Você é um vendedor experiente de uma padaria. Mantenha um tom amigável e profissional. ";
+                let conversationContext = "Você é um vendedor experiente versátil, especializado em conversar com clientes e converter vendas. Mantenha um tom amigável, profissional e persuasivo. ";
                 conversationContext += "Aqui está o histórico da conversa até agora:\n";
                 conversationHistory.forEach((msg, index) => {
                     conversationContext += `${msg.sender === 'user' ? 'Cliente' : 'Você'}: ${msg.text}\n`;
                 });
-                conversationContext += `Agora o cliente diz: "${userMessage}". Responda como vendedor, oferecendo seus produtos de forma persuasiva.`;
+                conversationContext += `Agora o cliente diz: "${userMessage}". Analise cuidadosamente o que o cliente está dizendo e responda de forma apropriada, com foco em converter em venda, oferecendo produtos ou serviços de forma persuasiva.`;
                 
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -299,39 +299,43 @@
                 const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar sua mensagem.';
                 */
 
-                // Simulação temporária melhorada para contexto de padaria com continuidade
-                // Criar respostas baseadas no histórico da conversa
+                // Simulação temporária mais generalista - IA entende o que o usuário envia e conversa
                 const lastUserMessage = userMessage.toLowerCase();
                 
                 // Determinar resposta baseada no conteúdo da mensagem do usuário
                 let aiResponse;
-                if (lastUserMessage.includes('bolo') || lastUserMessage.includes('preço') || lastUserMessage.includes('valor')) {
-                    const boloResponses = [
-                        'Temos bolos deliciosos a partir de R$ 45,00! Qual sabor você gostaria? Temos chocolate, cenoura, brigadeiro e muitos outros!',
-                        'Excelente escolha! Qual sabor você prefere? Temos bolo de chocolate trufado por R$ 60,00, bolo de cenoura com cobertura por R$ 50,00 e bolo de brigadeiro por R$ 55,00.',
-                        'Adoraria te ajudar com isso! Temos bolos variados, de R$ 45,00 a R$ 70,00 dependendo do sabor e recheio. Para pedidos acima de 2 unidades, oferecemos 10% de desconto. Qual você prefere?'
-                    ];
-                    aiResponse = boloResponses[Math.floor(Math.random() * boloResponses.length)];
-                } else if (lastUserMessage.includes('oi') || lastUserMessage.includes('olá') || lastUserMessage.includes('ola')) {
+                if (lastUserMessage.includes('oi') || lastUserMessage.includes('olá') || lastUserMessage.includes('ola') || 
+                    lastUserMessage.includes('oi,') || lastUserMessage.includes('olá,') || lastUserMessage.includes('ola,')) {
                     const greetingResponses = [
-                        'Olá! Adoraria te ajudar. Temos bolos deliciosos a partir de R$ 45,00. Qual sabor você gostaria?',
-                        'Oi! Que bom que entrou em contato! Nossos bolos são artesanais e deliciosos. Quer saber sobre nossos sabores e preços?',
-                        'Olá! Sou Ana, sua atendente virtual. Estou aqui para te ajudar com nossos bolos incríveis. Posso te mostrar as opções disponíveis?'
+                        'Olá! Fico feliz em conversar com você. Como posso te ajudar hoje?',
+                        'Oi! É um prazer atendê-lo. Em que posso ser útil para você?',
+                        'Olá! Estou aqui para te ajudar. Conte-me mais sobre o que você está procurando.'
                     ];
                     aiResponse = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
-                } else if (lastUserMessage.includes('obrigado') || lastUserMessage.includes('agradeço')) {
+                } else if (lastUserMessage.includes('bom dia') || lastUserMessage.includes('boa tarde') || lastUserMessage.includes('boa noite')) {
+                    const timeGreetingResponses = [
+                        'Bom dia! Como posso te ajudar hoje?',
+                        'Boa tarde! Estou aqui para o que precisar.',
+                        'Boa noite! Fico feliz em conversar com você.'
+                    ];
+                    aiResponse = timeGreetingResponses[Math.floor(Math.random() * timeGreetingResponses.length)];
+                } else if (lastUserMessage.includes('obrigado') || lastUserMessage.includes('agradeço') || 
+                          lastUserMessage.includes('vlw') || lastUserMessage.includes('obg')) {
                     const thanksResponses = [
-                        'Fico feliz em ajudar! Posso te mostrar mais detalhes sobre nossos bolos? Estou com uma promoção especial para pedidos hoje!',
-                        'Por nada! Gostaria de saber sobre nossos bolos especiais? Talvez tenha algo perfeito para sua ocasião!',
-                        'É um prazer ajudar! Se tiver mais alguma dúvida sobre nossos bolos, é só perguntar. Estou com condições especiais hoje!'
+                        'Fico feliz em ajudar! Se tiver mais alguma dúvida, estou à disposição.',
+                        'Por nada! Estou aqui para o que precisar.',
+                        'É um prazer ajudar! Posso te mostrar algum produto ou serviço interessante?'
                     ];
                     aiResponse = thanksResponses[Math.floor(Math.random() * thanksResponses.length)];
                 } else {
                     const generalResponses = [
-                        'Entendi! Temos bolos maravilhosos a partir de R$ 45,00. Posso te recomendar o sabor perfeito para sua ocasião?',
-                        'Perfeito! Nossos bolos são preparados com ingredientes selecionados. Posso te mostrar as opções de sabores e preços?',
-                        'Adoraria te ajudar com isso! Temos opções especiais que podem ser exatamente o que você está procurando. Quer saber mais?',
-                        'Temos exatamente o que você precisa! Nossos bolos são preparados com muito carinho. Posso te mostrar as opções disponíveis?'
+                        'Entendi! Posso te ajudar com isso. Temos produtos e serviços excelentes que talvez possam te interessar.',
+                        'Interessante! Gostaria de saber mais sobre suas necessidades para poder te oferecer algo adequado.',
+                        'Perfeito! Estou aqui para te ajudar e encontrar a melhor solução para você.',
+                        'Adoraria entender melhor suas necessidades para te oferecer produtos e serviços excelentes.',
+                        'Excelente ponto! Nossa empresa tem soluções que talvez possam te interessar. Posso te mostrar?',
+                        'Fico feliz que mencionou isso! Temos exatamente o que você precisa. Quer que eu te mostre?',
+                        'Essa é uma necessidade comum entre nossos clientes. Temos soluções prontas que podem te ajudar.'
                     ];
                     aiResponse = generalResponses[Math.floor(Math.random() * generalResponses.length)];
                 }
