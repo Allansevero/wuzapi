@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat com Vendedor IA - Gemini</title>
+    <title>Gerador de Mensagens de Venda - IA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -17,17 +16,16 @@
 
         body {
             background: linear-gradient(135deg, #128C7E, #075E54);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
 
-        .chat-container {
+        .container {
             width: 100%;
-            max-width: 400px;
-            height: 80vh;
+            max-width: 800px;
             background: white;
             border-radius: 15px;
             display: flex;
@@ -36,251 +34,296 @@
             overflow: hidden;
         }
 
-        .chat-header {
+        .header {
             background: #075E54;
             color: white;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
-            position: relative;
         }
 
-        .chat-header h1 {
-            font-size: 1.3rem;
-            margin-bottom: 5px;
-        }
-
-        .chat-header p {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #e5ddd5;
-            background-image: url('https://web.whatsapp.com/img/bg-chat-tile-light_686b98c9fdffef3f63127759e2057750.png');
-        }
-
-        .message {
-            max-width: 75%;
-            padding: 10px 15px;
+        .header h1 {
+            font-size: 1.8rem;
             margin-bottom: 10px;
-            border-radius: 10px;
-            position: relative;
-            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .user-message {
-            background: #dcf8c6;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-
-        .ai-message {
-            background: white;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-        }
-
-        .input-area {
-            display: flex;
-            padding: 15px;
-            background: #f0f2f5;
-            border-top: 1px solid #ddd;
-        }
-
-        .message-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
+        .header p {
             font-size: 1rem;
+            opacity: 0.9;
         }
 
-        .send-button {
-            background: #25D366;
-            border: none;
-            color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            margin-left: 10px;
-            cursor: pointer;
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .tags-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            background: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
             transition: background 0.3s;
         }
 
-        .send-button:hover {
+        .tag:hover {
+            background: #d0d0d0;
+        }
+
+        .tag.selected {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
             background: #128C7E;
         }
 
-        .controls {
-            padding: 15px;
-            background: #f0f2f5;
-            display: flex;
-            justify-content: space-between;
-            border-top: 1px solid #ddd;
-        }
-
-        .pdf-button {
+        .btn-pdf {
             background: #34B7F1;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            margin-top: 10px;
         }
 
-        .pdf-button:hover {
+        .btn-pdf:hover {
             background: #26A69A;
         }
 
-        .typing-indicator {
-            background: white;
-            padding: 10px 15px;
-            margin-bottom: 10px;
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
             border-radius: 10px;
+            border-left: 4px solid #25D366;
+        }
+
+        .results h3 {
+            margin-bottom: 15px;
+            color: #075E54;
+        }
+
+        .result-text {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
             display: none;
-            border-bottom-left-radius: 5px;
         }
 
-        .typing-dots {
-            display: flex;
-            align-items: center;
+        .loading i {
+            font-size: 2rem;
+            color: #075E54;
+            animation: spin 1s linear infinite;
         }
 
-        .typing-dots span {
-            width: 8px;
-            height: 8px;
-            background: #075E54;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-5px); }
-        }
-
-        .timestamp {
-            font-size: 0.7rem;
-            color: #666;
-            margin-top: 5px;
-            text-align: right;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>Vendedor IA - Gemini</h1>
-            <p>Converta clientes em vendas</p>
+    <div class="container">
+        <div class="header">
+            <h1>Gerador de Mensagens de Venda</h1>
+            <p>Gerador de textos persuasivos com IA</p>
         </div>
         
-        <div class="chat-messages" id="chat-messages">
-            <div class="message ai-message">
-                Olá! Sou seu assistente de vendas. Como posso ajudar a converter clientes em vendas hoje?
-                <div class="timestamp">Agora mesmo</div>
+        <div class="content">
+            <div class="form-group">
+                <label>Selecione a Tag para sua Mensagem:</label>
+                <div class="tags-container" id="tags-container">
+                    <div class="tag" data-tag="boas-vindas">Boas Vindas</div>
+                    <div class="tag" data-tag="promocao">Promoção</div>
+                    <div class="tag" data-tag="produto">Apresentação de Produto</div>
+                    <div class="tag" data-tag="conversao">Mensagem de Conversão</div>
+                    <div class="tag" data-tag="lembrete">Lembrete</div>
+                    <div class="tag" data-tag="agradecimento">Agradecimento</div>
+                    <div class="tag" data-tag="feedback">Solicitação de Feedback</div>
+                    <div class="tag" data-tag="aniversario">Aniversário</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="typing-indicator" id="typing-indicator">
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
+            
+            <div class="form-group">
+                <label for="empresa">Nome da Empresa:</label>
+                <input type="text" id="empresa" placeholder="Ex: Minha Empresa LTDA">
             </div>
-        </div>
-        
-        <div class="input-area">
-            <input type="text" class="message-input" id="message-input" placeholder="Digite sua mensagem como cliente..." autocomplete="off">
-            <button class="send-button" id="send-button">
-                <i class="fas fa-paper-plane"></i>
+            
+            <div class="form-group">
+                <label for="produto">Produto/Serviço:</label>
+                <input type="text" id="produto" placeholder="Ex: Consultoria de Marketing">
+            </div>
+            
+            <div class="form-group">
+                <label for="descricao">Descrição do Produto/Serviço:</label>
+                <textarea id="descricao" placeholder="Ex: Serviço de consultoria para aumentar vendas e otimizar processos..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="publico">Público-alvo:</label>
+                <input type="text" id="publico" placeholder="Ex: Empreendedores de pequenas empresas">
+            </div>
+            
+            <button class="btn" id="generate-btn">
+                <i class="fas fa-magic"></i> Gerar Mensagem
             </button>
-        </div>
-        
-        <div class="controls">
-            <button class="pdf-button" id="pdf-button">
-                <i class="fas fa-file-pdf"></i> Gerar PDF
-            </button>
+            
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Gerando sua mensagem especial...</p>
+            </div>
+            
+            <div class="results" id="results" style="display: none;">
+                <h3>Mensagem Gerada:</h3>
+                <div class="result-text" id="result-text"></div>
+                <button class="btn btn-pdf" id="pdf-btn">
+                    <i class="fas fa-file-pdf"></i> Baixar como PDF
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
         // Configuração da API Gemini (substitua pela sua chave real)
-        const API_KEY = 'AIzaSyAyPtSJ4ZFBnphwbnXC5PtrzHr-UsUmlfE';
+        const API_KEY = 'SUA_CHAVE_GEMINI_AQUI';
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
 
-        const chatMessages = document.getElementById('chat-messages');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
-        const pdfButton = document.getElementById('pdf-button');
-        const typingIndicator = document.getElementById('typing-indicator');
+        // Elementos do DOM
+        const tagsContainer = document.getElementById('tags-container');
+        const empresaInput = document.getElementById('empresa');
+        const produtoInput = document.getElementById('produto');
+        const descricaoInput = document.getElementById('descricao');
+        const publicoInput = document.getElementById('publico');
+        const generateBtn = document.getElementById('generate-btn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const resultText = document.getElementById('result-text');
+        const pdfBtn = document.getElementById('pdf-btn');
 
-        let conversationHistory = [];
+        // Variável para armazenar a tag selecionada
+        let selectedTag = null;
 
-        // Função para adicionar mensagem ao chat
-        function addMessage(text, isUser = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-            
-            const timestamp = new Date().toLocaleTimeString('pt-BR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+        // Evento para selecionar tags
+        document.querySelectorAll('.tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                // Remover seleção anterior
+                document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+                
+                // Adicionar seleção nova
+                tag.classList.add('selected');
+                selectedTag = tag.getAttribute('data-tag');
             });
-            
-            messageDiv.innerHTML = `${text}<div class="timestamp">${timestamp}</div>`;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Adiciona à história da conversa
-            conversationHistory.push({
-                sender: isUser ? 'user' : 'ai',
-                text: text,
-                timestamp: timestamp
-            });
-        }
+        });
 
-        // Função para simular resposta da IA (substitua com a API real do Gemini)
-        async function getAIResponse(userMessage) {
-            // Mostrar indicador de digitação
-            typingIndicator.style.display = 'block';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Função para gerar a mensagem
+        async function generateMessage() {
+            const empresa = empresaInput.value.trim();
+            const produto = produtoInput.value.trim();
+            const descricao = descricaoInput.value.trim();
+            const publico = publicoInput.value.trim();
+
+            // Verificar se todos os campos obrigatórios estão preenchidos
+            if (!selectedTag) {
+                alert('Por favor, selecione uma tag para sua mensagem.');
+                return;
+            }
+
+            if (!empresa || !produto) {
+                alert('Por favor, preencha o nome da empresa e o produto/serviço.');
+                return;
+            }
+
+            // Mostrar loading
+            loading.style.display = 'block';
+            results.style.display = 'none';
 
             try {
+                // Criar prompt baseado na tag e nos dados da empresa
+                let prompt = '';
+                
+                switch(selectedTag) {
+                    case 'boas-vindas':
+                        prompt = `Crie uma mensagem de boas-vindas para a ${empresa}. A empresa oferece ${produto} (${descricao}) para ${publico}. A mensagem deve ser acolhedora, profissional e convidar o cliente a conhecer mais sobre os serviços da empresa.`;
+                        break;
+                    case 'promocao':
+                        prompt = `Crie uma mensagem promocional para a ${empresa} anunciando ${produto} (${descricao}). A mensagem deve ser direcionada a ${publico}, com foco em conversão e chamadas para ação, destacando benefícios e criando urgência.`;
+                        break;
+                    case 'produto':
+                        prompt = `Crie uma mensagem de apresentação para ${produto} oferecido pela ${empresa}. Informações: ${descricao}. Público-alvo: ${publico}. A mensagem deve destacar os benefícios e características do produto de forma persuasiva.`;
+                        break;
+                    case 'conversao':
+                        prompt = `Crie uma mensagem de conversão para a ${empresa} oferecendo ${produto} (${descricao}). Púbico: ${publico}. A mensagem deve ter uma chamada para ação forte e argumentos convincentes para transformar prospect em cliente.`;
+                        break;
+                    case 'lembrete':
+                        prompt = `Crie uma mensagem de lembrete para a ${empresa} sobre ${produto} (${descricao}). Público: ${publico}. A mensagem deve ser amigável mas persuasiva, lembrando sobre o valor do serviço/produto.`;
+                        break;
+                    case 'agradecimento':
+                        prompt = `Crie uma mensagem de agradecimento para a ${empresa} direcionada a ${publico} por contratar ${produto} (${descricao}). A mensagem deve ser calorosa, profissional e convidar para futuras interações.`;
+                        break;
+                    case 'feedback':
+                        prompt = `Crie uma mensagem solicitando feedback da ${empresa} para ${publico} que contratou ${produto} (${descricao}). A mensagem deve ser cordial, explicar a importância do feedback e facilitar a resposta.`;
+                        break;
+                    case 'aniversario':
+                        prompt = `Crie uma mensagem de aniversário especial da ${empresa} para ${publico}, promovendo ${produto} (${descricao}). A mensagem deve combinar a comemoração com benefícios exclusivos do produto/serviço.`;
+                        break;
+                }
+
                 // Simulação - substitua com chamada real para API Gemini
                 // Descomente o código abaixo quando tiver a chave real
                 /*
-                // Criar contexto da conversa completa
-                let conversationContext = "Você é um vendedor experiente versátil, especializado em conversar com clientes e converter vendas. Mantenha um tom amigável, profissional e persuasivo. ";
-                conversationContext += "Aqui está o histórico da conversa até agora:\n";
-                conversationHistory.forEach((msg, index) => {
-                    conversationContext += `${msg.sender === 'user' ? 'Cliente' : 'Você'}: ${msg.text}\n`;
-                });
-                conversationContext += `Agora o cliente diz: "${userMessage}". Analise cuidadosamente o que o cliente está dizendo e responda de forma apropriada, com foco em converter em venda, oferecendo produtos ou serviços de forma persuasiva.`;
-                
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
@@ -289,134 +332,164 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: conversationContext
+                                text: prompt
                             }]
                         }]
                     })
                 });
 
                 const data = await response.json();
-                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar sua mensagem.';
+                const generatedMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui gerar a mensagem.';
                 */
 
-                // Simulação temporária mais generalista - IA entende o que o usuário envia e conversa
-                const lastUserMessage = userMessage.toLowerCase();
+                // Simulação temporária de mensagem
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Simular tempo de processamento
                 
-                // Determinar resposta baseada no conteúdo da mensagem do usuário
-                let aiResponse;
-                if (lastUserMessage.includes('oi') || lastUserMessage.includes('olá') || lastUserMessage.includes('ola') || 
-                    lastUserMessage.includes('oi,') || lastUserMessage.includes('olá,') || lastUserMessage.includes('ola,')) {
-                    const greetingResponses = [
-                        'Olá! Fico feliz em conversar com você. Como posso te ajudar hoje?',
-                        'Oi! É um prazer atendê-lo. Em que posso ser útil para você?',
-                        'Olá! Estou aqui para te ajudar. Conte-me mais sobre o que você está procurando.'
-                    ];
-                    aiResponse = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
-                } else if (lastUserMessage.includes('bom dia') || lastUserMessage.includes('boa tarde') || lastUserMessage.includes('boa noite')) {
-                    const timeGreetingResponses = [
-                        'Bom dia! Como posso te ajudar hoje?',
-                        'Boa tarde! Estou aqui para o que precisar.',
-                        'Boa noite! Fico feliz em conversar com você.'
-                    ];
-                    aiResponse = timeGreetingResponses[Math.floor(Math.random() * timeGreetingResponses.length)];
-                } else if (lastUserMessage.includes('obrigado') || lastUserMessage.includes('agradeço') || 
-                          lastUserMessage.includes('vlw') || lastUserMessage.includes('obg')) {
-                    const thanksResponses = [
-                        'Fico feliz em ajudar! Se tiver mais alguma dúvida, estou à disposição.',
-                        'Por nada! Estou aqui para o que precisar.',
-                        'É um prazer ajudar! Posso te mostrar algum produto ou serviço interessante?'
-                    ];
-                    aiResponse = thanksResponses[Math.floor(Math.random() * thanksResponses.length)];
-                } else {
-                    const generalResponses = [
-                        'Entendi! Posso te ajudar com isso. Temos produtos e serviços excelentes que talvez possam te interessar.',
-                        'Interessante! Gostaria de saber mais sobre suas necessidades para poder te oferecer algo adequado.',
-                        'Perfeito! Estou aqui para te ajudar e encontrar a melhor solução para você.',
-                        'Adoraria entender melhor suas necessidades para te oferecer produtos e serviços excelentes.',
-                        'Excelente ponto! Nossa empresa tem soluções que talvez possam te interessar. Posso te mostrar?',
-                        'Fico feliz que mencionou isso! Temos exatamente o que você precisa. Quer que eu te mostre?',
-                        'Essa é uma necessidade comum entre nossos clientes. Temos soluções prontas que podem te ajudar.'
-                    ];
-                    aiResponse = generalResponses[Math.floor(Math.random() * generalResponses.length)];
-                }
-                
-                // Simular tempo de resposta
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Mensagens simuladas para cada tipo de tag
+                const simulatedMessages = {
+                    'boas-vindas': `Olá! Bem-vindo à ${empresa}! 🌟 
 
-                typingIndicator.style.display = 'none';
-                return aiResponse;
+Estamos muito felizes em tê-lo conosco. Somos especialistas em ${produto}, e acreditamos que ${descricao}.
+
+Sabemos o quanto ${publico} precisam de soluções confiáveis, e é exatamente isso que oferecemos. Estamos aqui para garantir que você tenha a melhor experiência possível.
+
+Se tiver alguma dúvida, estamos à disposição para ajudar!`,
+                    
+                    'promocao': `🎉 PROMOÇÃO ESPECIAL para ${publico}!
+
+A ${empresa} está oferecendo uma oportunidade imperdível para ${produto}! 
+
+${descricao}
+
+✔️ Benefício exclusivo para novos clientes
+✔️ Atendimento personalizado  
+✔️ Resultados garantidos
+
+Não perca essa chance! Acesse nosso site ou entre em contato hoje mesmo para garantir seu lugar.
+
+Vagas limitadas!`,
+                    
+                    'produto': `Descubra o poder de ${produto} da ${empresa}! 💼
+
+${descricao}
+
+Nossa solução é perfeita para ${publico}, oferecendo:
+
+✅ Resultados de alta qualidade
+✅ Atendimento personalizado  
+✅ Apoio contínuo
+
+Quer descobrir como podemos transformar sua realidade? Entre em contato com a gente para uma demonstração gratuita!
+
+Vamos juntos rumo ao sucesso?`,
+                    
+                    'conversao': `Atenção ${publico}! 🚀
+
+Você sabia que ${descricao}?
+
+A ${empresa} tem ajudado centenas de clientes como você a alcançarem resultados extraordinários com ${produto}. 
+
+NÃO PERCA MAIS TEMPO! 
+
+👉 Clique aqui agora para agendar sua consulta gratuita
+👉 Garanta sua vaga na nossa lista VIP
+👉 Receba um desconto especial por tempo limitado
+
+Sua transformação começa hoje!`,
+                    
+                    'lembrete': `Olá! 👋 
+
+Aqui é da ${empresa}, e queremos te lembrar sobre ${produto}. 
+
+${descricao}
+
+Sabemos como ${publico} estão sempre em busca de soluções eficazes, e nossa oferta pode ser exatamente o que você precisa.
+
+Ainda está em tempo de garantir os benefícios exclusivos que preparamos. Não deixe essa oportunidade passar!
+
+Clique aqui para saber mais.`,
+                    
+                    'agradecimento': `Muito obrigado por escolher a ${empresa}! 🙏
+
+Ficamos imensamente gratos por você ter contratado ${produto}. 
+
+${descricao}
+
+Nosso time está inteiramente dedicado para garantir que você tenha a melhor experiência possível. Se precisar de qualquer coisa, estamos aqui para ajudar!
+
+Conte sempre com a ${empresa} para seus objetivos. Juntos, vamos mais longe!`,
+                    
+                    'feedback': `Olá! 📝
+
+A ${empresa} valoriza sua opinião sobre ${produto}.
+
+${descricao}
+
+Como ${publico} que contratou nosso serviço, seu feedback é fundamental para continuarmos aprimorando nossas soluções.
+
+Poderia nos dedicar alguns minutos para avaliar sua experiência? Sua opinião ajuda outros clientes e nos motiva a continuar oferecendo o melhor.
+
+Agradecemos imensamente por fazer parte da nossa jornada!`,
+                    
+                    'aniversario': `🎂 Parabéns! Hoje é aniversário da ${empresa}! 🎂
+
+E para comemorar, temos uma surpresa especial para ${publico}!
+
+Hoje, quem contratar ${produto} ganha um bônus exclusivo! 
+
+${descricao}
+
+Por tempo limitado, estamos oferecendo condições especiais como forma de agradecer pelo carinho de todos esses anos. 
+
+Celebre conosco e descubra como podemos fazer sua jornada ainda mais promissora!
+
+Parabéns para nós! 🥳`
+                };
+
+                const generatedMessage = simulatedMessages[selectedTag] || 'Mensagem gerada com sucesso!';
+                
+                // Exibir a mensagem gerada
+                resultText.textContent = generatedMessage;
+                
+                // Ocultar loading e mostrar resultados
+                loading.style.display = 'none';
+                results.style.display = 'block';
+                
             } catch (error) {
                 console.error('Erro na API:', error);
-                typingIndicator.style.display = 'none';
-                return 'Desculpe, ocorreu um erro. Poderia tentar novamente?';
+                loading.style.display = 'none';
+                alert('Ocorreu um erro ao gerar a mensagem. Por favor, tente novamente.');
             }
-        }
-
-        // Função para enviar mensagem
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
-
-            // Adiciona mensagem do usuário
-            addMessage(message, true);
-            messageInput.value = '';
-
-            // Pega resposta da IA
-            const aiResponse = await getAIResponse(message);
-            addMessage(aiResponse, false);
         }
 
         // Função para gerar PDF
-        async function generatePDF() {
-            if (conversationHistory.length <= 1) {
-                alert('A conversa está vazia. Adicione algumas mensagens antes de gerar o PDF.');
-                return;
-            }
-
-            // Filtrar apenas as mensagens da IA (vendedor)
-            const aiMessages = conversationHistory.filter(msg => msg.sender === 'ai');
-
-            if (aiMessages.length === 0) {
-                alert('Nenhuma mensagem do vendedor para exportar.');
-                return;
-            }
-
-            // Criar conteúdo do PDF
+        function generatePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
             doc.setFontSize(16);
-            doc.text('Mensagens de Venda Geradas', 20, 20);
+            doc.text('Mensagem Gerada - ' + document.querySelector('.tag.selected')?.textContent || 'Sem tag selecionada', 20, 20);
             doc.setFontSize(12);
             
+            const message = resultText.textContent;
+            const splitText = doc.splitTextToSize(message, 170);
+            
             let y = 35;
-            aiMessages.forEach((msg, index) => {
-                const splitText = doc.splitTextToSize(`Vendedor: ${msg.text}`, 170);
-                splitText.forEach(textLine => {
-                    if (y > 280) { // Nova página se necessário
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.text(textLine, 20, y);
-                    y += 8;
-                });
-                y += 5; // Espaçamento entre mensagens
+            splitText.forEach(textLine => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(textLine, 20, y);
+                y += 8;
             });
 
-            // Salvar PDF
-            doc.save('mensagens-venda-ia.pdf');
+            doc.save('mensagem-gerada.pdf');
         }
 
         // Event listeners
-        sendButton.addEventListener('click', sendMessage);
-        
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-        
-        pdfButton.addEventListener('click', generatePDF);
+        generateBtn.addEventListener('click', generateMessage);
+        pdfBtn.addEventListener('click', generatePDF);
     </script>
 </body>
 </html>
