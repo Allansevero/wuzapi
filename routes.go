@@ -202,6 +202,11 @@ func (s *server) routes() {
 	s.router.PathPrefix("/dashboard/").Handler(http.StripPrefix("/dashboard/", http.FileServer(http.Dir(exPath + "/static/dashboard/"))))
 	s.router.PathPrefix("/api/").Handler(http.StripPrefix("/api/", http.FileServer(http.Dir(exPath + "/static/api/"))))
 
+	// Rota específica para o artigo de performance
+	s.router.HandleFunc("/como-medir-performance-dos-vendedores-no-whatsapp", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, exPath+"/static/como-medir-perfomance-dos-vendedores-no-whatsapp.html")
+	}).Methods("GET")
+
 	// Rota genérica para outros arquivos estáticos
 	s.router.PathPrefix("/").Handler(http.FileServer(http.Dir(exPath + "/static/")))
 }
