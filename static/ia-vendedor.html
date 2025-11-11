@@ -230,7 +230,7 @@
 
     <script>
         // Configuração da API Gemini (substitua pela sua chave real)
-        const API_KEY = 'SUA_CHAVE_GEMINI_AQUI';
+        const API_KEY = 'AIzaSyAp5XnSL3e79yNWEB827ZB8nk3tv7lEv3A';
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
 
         const chatMessages = document.getElementById('chat-messages');
@@ -281,7 +281,7 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: `Você é um vendedor experiente. O cliente disse: "${userMessage}". Responda com uma mensagem persuasiva para converter em venda, mantendo um tom amigável e profissional.`
+                                text: `Você é um vendedor experiente de uma padaria. Um cliente entrou em contato e disse: "${userMessage}". Agora você deve responder como vendedor, oferecendo seus produtos (como bolos, doces, salgados, etc.) de forma persuasiva para converter em venda. Mantenha um tom amigável, profissional e foque em convencer o cliente a comprar. Se o cliente perguntar sobre preços, forneça valores realistas para os produtos.`
                             }]
                         }]
                     })
@@ -291,14 +291,14 @@
                 const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar sua mensagem.';
                 */
 
-                // Simulação temporária
+                // Simulação temporária melhorada para contexto de padaria
                 const responses = [
-                    'Interessante! Posso te mostrar como nosso produto pode resolver exatamente esse problema que você mencionou.',
-                    'Essa é uma ótima pergunta! Acredito que nosso produto pode te ajudar com isso de forma muito eficiente.',
-                    'Fico feliz que mencionou isso! Esse é justamente um dos principais benefícios que nossos clientes mais valorizam.',
-                    'Perfeito! Tenho certeza que posso te mostrar como resolver isso com nossa solução.',
-                    'Entendi perfeitamente sua necessidade. Com nossa solução, você teria exatamente isso e muito mais!',
-                    'Sua necessidade é bem comum entre nossos clientes. Vamos te mostrar como resolvemos isso de forma rápida e eficaz.'
+                    'Temos bolos deliciosos a partir de R$ 45,00! Qual sabor você gostaria? Temos chocolate, cenoura, brigadeiro e muitos outros!',
+                    'Que ótimo! Temos bolos caseiros com recheio cremoso a partir de R$ 45,00. Qual data você precisa? Estamos com 15% de desconto para pedidos com 3 dias de antecedência!',
+                    'Excelente! Qual sabor você prefere? Temos bolo de chocolate trufado por R$ 60,00, bolo de cenoura com cobertura por R$ 50,00 e bolo de brigadeiro por R$ 55,00.',
+                    'Adoraria te ajudar! Temos bolos variados, de R$ 45,00 a R$ 70,00 dependendo do sabor e recheio. Para pedidos acima de 2 unidades, oferecemos 10% de desconto. Qual você prefere?',
+                    'Temos opções maravilhosas! Nossos bolos custam a partir de R$ 45,00 e são feitos com ingredientes selecionados. Qual ocasião é? Posso te recomendar o melhor sabor!',
+                    'Nossa padaria tem os melhores bolos da região! Pedidos com 24h de antecedência ganham uma decoração especial grátis. Temos sabores como chocolate belga, limão siciliano e nozes por R$ 55,00.'
                 ];
                 
                 // Simular tempo de resposta
