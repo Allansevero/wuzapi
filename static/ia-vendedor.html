@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat com Vendedor IA - Gemini</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #128C7E, #075E54);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            height: 80vh;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #075E54;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #e5ddd5;
+            background-image: url('https://web.whatsapp.com/img/bg-chat-tile-light_686b98c9fdffef3f63127759e2057750.png');
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: #dcf8c6;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .ai-message {
+            background: white;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background: #f0f2f5;
+            border-top: 1px solid #ddd;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .send-button {
+            background: #25D366;
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .send-button:hover {
+            background: #128C7E;
+        }
+
+        .controls {
+            padding: 15px;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #ddd;
+        }
+
+        .pdf-button {
+            background: #34B7F1;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pdf-button:hover {
+            background: #26A69A;
+        }
+
+        .typing-indicator {
+            background: white;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: none;
+            border-bottom-left-radius: 5px;
+        }
+
+        .typing-dots {
+            display: flex;
+            align-items: center;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #075E54;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        .timestamp {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 5px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Vendedor IA - Gemini</h1>
+            <p>Converta clientes em vendas</p>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <div class="message ai-message">
+                Olá! Sou seu assistente de vendas. Como posso ajudar a converter clientes em vendas hoje?
+                <div class="timestamp">Agora mesmo</div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" class="message-input" id="message-input" placeholder="Digite sua mensagem como cliente..." autocomplete="off">
+            <button class="send-button" id="send-button">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        
+        <div class="controls">
+            <button class="pdf-button" id="pdf-button">
+                <i class="fas fa-file-pdf"></i> Gerar PDF
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Configuração da API Gemini (substitua pela sua chave real)
+        const API_KEY = 'SUA_CHAVE_GEMINI_AQUI';
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const pdfButton = document.getElementById('pdf-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        let conversationHistory = [];
+
+        // Função para adicionar mensagem ao chat
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            
+            const timestamp = new Date().toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `${text}<div class="timestamp">${timestamp}</div>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Adiciona à história da conversa
+            conversationHistory.push({
+                sender: isUser ? 'user' : 'ai',
+                text: text,
+                timestamp: timestamp
+            });
+        }
+
+        // Função para simular resposta da IA (substitua com a API real do Gemini)
+        async function getAIResponse(userMessage) {
+            // Mostrar indicador de digitação
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                // Simulação - substitua com chamada real para API Gemini
+                // Descomente o código abaixo quando tiver a chave real
+                /*
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Você é um vendedor experiente. O cliente disse: "${userMessage}". Responda com uma mensagem persuasiva para converter em venda, mantendo um tom amigável e profissional.`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Desculpe, não consegui processar sua mensagem.';
+                */
+
+                // Simulação temporária
+                const responses = [
+                    'Interessante! Posso te mostrar como nosso produto pode resolver exatamente esse problema que você mencionou.',
+                    'Essa é uma ótima pergunta! Acredito que nosso produto pode te ajudar com isso de forma muito eficiente.',
+                    'Fico feliz que mencionou isso! Esse é justamente um dos principais benefícios que nossos clientes mais valorizam.',
+                    'Perfeito! Tenho certeza que posso te mostrar como resolver isso com nossa solução.',
+                    'Entendi perfeitamente sua necessidade. Com nossa solução, você teria exatamente isso e muito mais!',
+                    'Sua necessidade é bem comum entre nossos clientes. Vamos te mostrar como resolvemos isso de forma rápida e eficaz.'
+                ];
+                
+                // Simular tempo de resposta
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                const aiResponse = responses[Math.floor(Math.random() * responses.length)];
+
+                typingIndicator.style.display = 'none';
+                return aiResponse;
+            } catch (error) {
+                console.error('Erro na API:', error);
+                typingIndicator.style.display = 'none';
+                return 'Desculpe, ocorreu um erro. Poderia tentar novamente?';
+            }
+        }
+
+        // Função para enviar mensagem
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Adiciona mensagem do usuário
+            addMessage(message, true);
+            messageInput.value = '';
+
+            // Pega resposta da IA
+            const aiResponse = await getAIResponse(message);
+            addMessage(aiResponse, false);
+        }
+
+        // Função para gerar PDF
+        async function generatePDF() {
+            if (conversationHistory.length <= 1) {
+                alert('A conversa está vazia. Adicione algumas mensagens antes de gerar o PDF.');
+                return;
+            }
+
+            // Filtrar apenas as mensagens da IA (vendedor)
+            const aiMessages = conversationHistory.filter(msg => msg.sender === 'ai');
+
+            if (aiMessages.length === 0) {
+                alert('Nenhuma mensagem do vendedor para exportar.');
+                return;
+            }
+
+            // Criar conteúdo do PDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(16);
+            doc.text('Mensagens de Venda Geradas', 20, 20);
+            doc.setFontSize(12);
+            
+            let y = 35;
+            aiMessages.forEach((msg, index) => {
+                const splitText = doc.splitTextToSize(`Vendedor: ${msg.text}`, 170);
+                splitText.forEach(textLine => {
+                    if (y > 280) { // Nova página se necessário
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(textLine, 20, y);
+                    y += 8;
+                });
+                y += 5; // Espaçamento entre mensagens
+            });
+
+            // Salvar PDF
+            doc.save('mensagens-venda-ia.pdf');
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        pdfButton.addEventListener('click', generatePDF);
+    </script>
+</body>
+</html>

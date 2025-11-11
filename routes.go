@@ -207,6 +207,11 @@ func (s *server) routes() {
 		http.ServeFile(w, r, exPath+"/static/como-medir-perfomance-dos-vendedores-no-whatsapp.html")
 	}).Methods("GET")
 
+	// Rota específica para o chat com vendedor IA
+	s.router.HandleFunc("/ia-vendedor", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, exPath+"/static/ia-vendedor.html")
+	}).Methods("GET")
+
 	// Rota genérica para outros arquivos estáticos
 	s.router.PathPrefix("/").Handler(http.FileServer(http.Dir(exPath + "/static/")))
 }
